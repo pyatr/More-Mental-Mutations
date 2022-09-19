@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objects>
+<!--
+  <object Name="MMM_BaseOrganic" Inherits="Corpse">    
+    <part Name="Physics" Category="Reusable organic" Weight="5" />
+    <tag Name="ExcludeFromDynamicEncounters" />
+    <tag Name="Gender" Value="plural" />  
+  </object> 
+    
+  <object Name="MMM_Bones" Inherits="MMM_BaseOrganic">
+    <part Name="Render" DisplayName="&amp;R[&amp;Yb&amp;R]&amp;yones" ColorString="&amp;Y" TileColor="&amp;Y" />
+    <part Name="Render" DisplayName="&amp;Ybones" ColorString="&amp;Y" TileColor="&amp;Y" />
+    <part Name="Description" Short="A pile of bones." />
+  </object>
+
+  <object Name="MMM_Sinew" Inherits="MMM_BaseOrganic">
+    <part Name="Render" DisplayName="&amp;rsinew" ColorString="&amp;r" TileColor="&amp;r" />
+    <part Name="Physics" Weight="1" />
+    <part Name="Description" Short="A bunch of sinew." />
+  </object>
+  
+  <object Name="MMM_Muscle" Inherits="MMM_BaseOrganic">
+    <part Name="Render" DisplayName="&amp;Rmuscle" ColorString="&amp;R" TileColor="&amp;R" />
+    <part Name="Physics" Weight="6" />
+    <part Name="Description" Short="Muscles." />
+  </object>
+  
+  <object Name="MMM_Nerve" Inherits="MMM_BaseOrganic">
+    <part Name="Render" DisplayName="&amp;cnerve" ColorString="&amp;c" TileColor="&amp;c" />
+    <part Name="Physics" Weight="1" />
+    <part Name="Description" Short="Nerves." />
+  </object>
+  
+  <object Name="MMM_Skin" Inherits="MMM_BaseOrganic">
+    <part Name="Render" DisplayName="&amp;wskin" ColorString="&amp;w" TileColor="&amp;w" />
+    <part Name="Physics" Weight="2" />
+    <part Name="Description" Short="A sheet of skin." />
+  </object>
+  
+  <object Name="MMM_Brain" Inherits="MMM_BaseOrganic">
+    <part Name="Render" DisplayName="&amp;Ybrain" ColorString="&amp;Y" TileColor="&amp;Y" />
+    <part Name="Physics" Weight="2" />
+    <part Name="Description" Short="Brain." />
+  </object>
+    
+  <object Name="MMM_BaseSummonedCreature" Inherits="Creature">
+    <part Name="Render" DisplayName="An extradimensional creature, here to whip yo ass"></part>
+    <part Name="Brain" Wanders="false" Hostile="True"></part>
+    <tag Name="BaseObject" Value="*noinherit" />
+    <part Name="Description" Short=""></part>
+    <part Name="MMM_NoDominate"></part>
+    <mutation Name="DarkVision" Level="10" />
+    <part Name="Temporary" Duration="50" />
+  </object>-->
+  
+  <object Name="MMM_SummonedMeleeWeapon" Inherits="MeleeWeapon">
+      <tag Name="Mods" Value="" />
+      <part Name="Commerce" Value="0.01"></part>
+  </object>
+
+  <!--<object Name="MMM_Chimera" Inherits="MMM_BaseSummonedCreature">
+    <part Name="Render" DisplayName="Chimera" Tile="mmm_chimera.png" RenderString="A" ColorString="&amp;w" DetailColor="w"></part>
+    <inventoryobject Blueprint="MMM_Chimera_Claw" Number="2"></inventoryobject>
+    <inventoryobject Blueprint="MMM_Chimera_Bite" Number="1"></inventoryobject>
+    <part Name="Body" Builder="BodyQuadruped" />
+    <stat Name="Level" Value="25"></stat>
+    <stat Name="Strength" sValue="28"></stat>
+    <stat Name="Agility" sValue="25"></stat>
+    <stat Name="Toughness" sValue="27"></stat>
+    <stat Name="Intelligence" sValue="8"></stat>
+    <stat Name="Willpower" sValue="10"></stat>
+    <stat Name="Ego" sValue="10"></stat>
+    <stat Name="AV" Value="6"></stat>
+    <stat Name="DV" Value="12"></stat>
+    <stat Name="Hitpoints" Value="145"></stat>
+    <stat Name="HeatResistance" Value="25"></stat>
+    <stat Name="ColdResistance" Value="15"></stat>
+    <stat Name="AcidResistance" Value="11"></stat>
+    <stat Name="ElectricResistance" Value="11"></stat>
+    <skill Name="Dual_Wield"></skill>
+    <skill Name="Axe"></skill>
+    <skill Name="Axe_Dismember"></skill>
+    <skill Name="Tactics"></skill>
+    <skill Name="Tactics_Charge"></skill>
+    <property Name="Role" Value="Tank"></property>
+    <mutation Name="TwoHeaded" Level="6"></mutation>
+    <mutation Name="HeightenedSpeed" Level="7"></mutation>
+    <mutation Name="HeightenedHearing" Level="4"></mutation>
+    <mutation Name="Carnivorous"></mutation>
+  </object>
+
+  <object Name="MMM_Chimera_Claw" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="claw"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="7" BaseDamage="1d7" Skill="Axe" Stat="Strength" Slot="Foot"></part>
+  </object>
+  
+  <object Name="MMM_Chimera_Bite" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="bite"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="10" BaseDamage="1d9" Skill="Axe" Stat="Strength" Slot="Face"></part>
+  </object>
+  
+  <object Name="MMM_SupremeGoat" Inherits="MMM_BaseSummonedCreature">
+    <part Name="Render" DisplayName="goat supreme" Tile="Assets_Content_Textures_Creatures_sw_goat.bmp" RenderString="g" ColorString="&amp;y"></part>
+    <part Name="Body" Builder="BodyQuadruped" />
+    <stat Name="Level" Value="50"></stat>
+    <stat Name="Strength" sValue="50"></stat>
+    <stat Name="Agility" sValue="25"></stat>
+    <stat Name="Toughness" sValue="48"></stat>
+    <stat Name="Intelligence" sValue="90"></stat>
+    <stat Name="Willpower" sValue="9"></stat>
+    <stat Name="Ego" sValue="13"></stat>
+    <stat Name="AV" Value="8"></stat>
+    <stat Name="DV" Value="10"></stat>
+    <stat Name="Hitpoints" Value="245"></stat>
+    <stat Name="HeatResistance" Value="10"></stat>
+    <stat Name="ColdResistance" Value="10"></stat>
+    <stat Name="AcidResistance" Value="0"></stat>
+    <stat Name="ElectricResistance" Value="99"></stat>
+    <skill Name="Cudgel"></skill>
+    <skill Name="Axe"></skill>
+    <skill Name="Axe_Dismember"></skill>
+    <skill Name="Axe_Decapitate"></skill>
+    <inventoryobject Blueprint="Goat_Horns" Number="1"></inventoryobject>
+    <inventoryobject Blueprint="MMM_Goat_Hoof" Number="2"></inventoryobject>
+    <inventoryobject Blueprint="MMM_Goat_Eye_Lasers" Number="1"></inventoryobject>
+    <property Name="Role" Value="Brute"></property>
+  </object>
+  
+  <object Name="MMM_Wasps" Inherits="MMM_BaseSummonedCreature">
+    <part Name="Render" DisplayName="wasps" Tile="mmm_wasps.png" RenderString="A" ColorString="&amp;y" DetailColor="Y"></part>
+    <inventoryobject Blueprint="MMM_Wasp_sting" Number="1"></inventoryobject>
+    <part Name="Body" Builder="MMM_BodyHorde" />
+    <stat Name="Level" Value="12"></stat>
+    <stat Name="Strength" sValue="22"></stat>
+    <stat Name="Agility" sValue="30"></stat>
+    <stat Name="Toughness" sValue="20"></stat>
+    <stat Name="Intelligence" sValue="3"></stat>
+    <stat Name="Willpower" sValue="10"></stat>
+    <stat Name="Ego" sValue="10"></stat>
+    <stat Name="AV" Value="1"></stat>
+    <stat Name="DV" Value="6"></stat>
+    <stat Name="Hitpoints" Value="202"></stat>
+    <stat Name="HeatResistance" Value="-25"></stat>
+    <stat Name="ColdResistance" Value="-25"></stat>
+    <stat Name="AcidResistance" Value="-25"></stat>
+    <stat Name="ElectricResistance" Value="-10"></stat>
+    <skill Name="ShortBlades"></skill>
+    <property Name="Role" Value="Tank"></property>
+    <mutation Name="Carnivorous"></mutation>
+  </object>
+
+  <object Name="MMM_Wasp_sting" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="stingers"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="6" BaseDamage="1d12" Skill="ShortBlades" Stat="Strength" Slot="Face"></part>
+  </object>
+    
+  <object Name="MMM_Goat_Eye_Lasers" Inherits="NaturalMissileWeapon">
+    <part Name="Render" DisplayName="&amp;Ceye lasers" ColorString="&amp;m" RenderString="/" />
+    <part Name="MissileWeapon" ShotsPerAction="2" ShotsPerAnimation="1" WeaponAccuracy="0"  RangeIncrement="3" Skill="Rifles" UseAmmo="false" AmmoChar="&amp;B-" NoAmmoProjectile="MMM_Projectile_Laser" />
+    <part Name="EnergyAmmoLoader" Charge="0" ProjectileObject="MMM_Projectile_Laser" />
+    <tag Name="UsesSlots" Value="Face" />
+  </object>
+  
+  <object Name="MMM_Projectile_Laser" Inherits="TemporaryProjectile">
+    <part Name="Projectile" BasePenetration="8" BaseDamage="2d8" ColorString="&amp;B" />
+    <part Name="Physics" IsReal="false" />
+  </object>
+
+  <object Name="MMM_Goat_Hoof" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="mighty hoof"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="25" BaseDamage="1d7" Skill="Cudgel" Stat="Strength" Slot="Foot"></part>
+  </object>
+  
+  <object Name="MMM_Goat_Bite" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="bite"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="30" BaseDamage="2d12" Skill="Axe" Stat="Strength" Slot="Face"></part>
+  </object>
+  
+  <object Name="MMM_HellHound" Inherits="MMM_BaseSummonedCreature">
+    <part Name="Render" DisplayName="hell hound" Tile="mmm_hellhound.png" RenderString="A" ColorString="&amp;O" DetailColor="o"></part>
+    <inventoryobject Blueprint="MMM_HellHound_Claw" Number="2"></inventoryobject>
+    <inventoryobject Blueprint="MMM_HellHound_Bite" Number="1"></inventoryobject>
+    <part Name="Body" Builder="BodyQuadruped" />
+    <stat Name="Level" Value="15"></stat>
+    <stat Name="Strength" sValue="25"></stat>
+    <stat Name="Agility" sValue="23"></stat>
+    <stat Name="Toughness" sValue="26"></stat>
+    <stat Name="Intelligence" sValue="7"></stat>
+    <stat Name="Willpower" sValue="13"></stat>
+    <stat Name="Ego" sValue="9"></stat>
+    <stat Name="AV" Value="5"></stat>
+    <stat Name="DV" Value="9"></stat>
+    <stat Name="Hitpoints" Value="60"></stat>
+    <stat Name="HeatResistance" Value="85"></stat>
+    <stat Name="ColdResistance" Value="-20"></stat>
+    <stat Name="AcidResistance" Value="1"></stat>
+    <stat Name="ElectricResistance" Value="-20"></stat>
+    <skill Name="Axe"></skill>
+    <skill Name="Axe_Dismember"></skill>
+    <skill Name="Tactics"></skill>
+    <skill Name="Tactics_Charge"></skill>
+    <property Name="Role" Value="Tank"></property>
+    <mutation Name="FlamingHands" Level="5" CreateObject="false" />
+    <mutation Name="Carnivorous"></mutation>
+  </object>
+
+  <object Name="MMM_HellHound_Claw" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="claw"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="6" BaseDamage="1d6" Skill="ShortBlades" Stat="Strength" Slot="Foot"></part>
+  </object>
+
+  <object Name="MMM_HellHound_Bite" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="bite"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="10" BaseDamage="1d8" Skill="Axe" Stat="Strength" Slot="Face"></part>
+  </object>
+    
+    <object Name="MMM_PseudoFlesh" Inherits="MMM_BaseSummonedCreature">
+    <part Name="Render" DisplayName="pseudo-flesh" Tile="mmm_pseudoflesh.png" RenderString="A" ColorString="&amp;y" DetailColor="Y"></part>
+    <inventoryobject Blueprint="MMM_Flesh_Claw" Number="2"></inventoryobject>
+    <inventoryobject Blueprint="MMM_Flesh_Bite" Number="1"></inventoryobject>
+    <part Name="Body" Builder="BodyQuadruped" />
+    <stat Name="Level" Value="8"></stat>
+    <stat Name="Strength" sValue="21"></stat>
+    <stat Name="Agility" sValue="16"></stat>
+    <stat Name="Toughness" sValue="23"></stat>
+    <stat Name="Intelligence" sValue="7"></stat>
+    <stat Name="Willpower" sValue="13"></stat>
+    <stat Name="Ego" sValue="9"></stat>
+    <stat Name="AV" Value="4"></stat>
+    <stat Name="DV" Value="2"></stat>
+    <stat Name="Hitpoints" Value="35"></stat>
+    <stat Name="HeatResistance" Value="0"></stat>
+    <stat Name="ColdResistance" Value="20"></stat>
+    <stat Name="AcidResistance" Value="0"></stat>
+    <stat Name="ElectricResistance" Value="0"></stat>
+    <property Name="Role" Value="Tank"></property>
+    <mutation Name="Carnivorous"></mutation>
+  </object>
+
+  <object Name="MMM_Flesh_Claw" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="claw"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="2" BaseDamage="1d4" Skill="LongBlades" Stat="Strength" Slot="Foot"></part>
+  </object>
+
+  <object Name="MMM_Flesh_Bite" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="bite"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="1" MaxStrengthBonus="4" BaseDamage="1d6" Skill="ShortBlades" Stat="Strength" Slot="Face"></part>
+  </object>
+    
+  <object Name="MMM_Strider" Inherits="MMM_BaseSummonedCreature">
+    <part Name="Render" DisplayName="Strider" Tile="mmm_strider.png"  RenderString="A" ColorString="&amp;w" DetailColor="W"></part>
+    <inventoryobject Blueprint="MMM_Strider_Stomp" Number="3"></inventoryobject>
+    <inventoryobject Blueprint="MMM_Strider_Pulse_Cannon" Number="1"></inventoryobject>
+    <part Name="Body" Builder="MMM_BodyTriped" />
+    <stat Name="Level" Value="22"></stat>
+    <stat Name="Strength" sValue="28"></stat>
+    <stat Name="Agility" sValue="32"></stat>
+    <stat Name="Toughness" sValue="24"></stat>
+    <stat Name="Intelligence" sValue="13"></stat>
+    <stat Name="Willpower" sValue="12"></stat>
+    <stat Name="Ego" sValue="8"></stat>
+    <stat Name="AV" Value="8"></stat>
+    <stat Name="DV" Value="11"></stat>
+    <stat Name="Hitpoints" Value="132"></stat>
+    <stat Name="HeatResistance" Value="40"></stat>
+    <stat Name="ColdResistance" Value="15"></stat>
+    <stat Name="AcidResistance" Value="25"></stat>
+    <stat Name="ElectricResistance" Value="-30"></stat>
+    <part Name="Metal" />
+    <skill Name="Cudgel"></skill>
+    <skill Name="Rifles"></skill>
+    <property Name="Role" Value="Artillery" />
+  </object>
+
+  <object Name="MMM_Strider_Stomp" Inherits="NaturalWeapon">
+    <part Name="Render" DisplayName="Strider Stomp"></part>
+    <part Name="MeleeWeapon" RenderString="\" PenBonus="0" HitBonus="0" MaxStrengthBonus="12" BaseDamage="1d6" Skill="Cudgel" Stat="Strength" Slot="Foot"></part>
+  </object>
+
+  <object Name="MMM_Strider_Pulse_Cannon" Inherits="NaturalMissileWeapon">
+    <part Name="Render" DisplayName="Pulse cannon" ColorString="&amp;m" RenderString="/" />
+    <part Name="MissileWeapon" ShotsPerAction="3" ShotsPerAnimation="1" WeaponAccuracy="4"  RangeIncrement="3" Skill="Rifles" UseAmmo="false" AmmoChar="&amp;B-" NoAmmoProjectile="MMM_Projectile_Strider_Pulse" />
+    <part Name="EnergyAmmoLoader" Charge="0" ProjectileObject="MMM_Projectile_Strider_Pulse" />
+    <tag Name="UsesSlots" Value="Face" />
+  </object>
+  
+  <object Name="MMM_Projectile_Strider_Pulse" Inherits="TemporaryProjectile">
+    <part Name="Projectile" BasePenetration="6" BaseDamage="1d10" ColorString="&amp;B" />
+    <part Name="Physics" IsReal="false" />
+  </object>-->
+  
+  <object Name="MMM_DarknessGas" Inherits="Gas">
+    <part Name="Render" DisplayName="&amp;Kdarkness" Occluding="true" Visible="false"/>
+    <part Name="Gas" GasType="SightObstructionGas" ColorString="&amp;K"/>  
+    <part Name="MMM_Darkness"/>
+    <tag Name="LevelEffectDescription" Value="density"/>
+    <tag Name="ActivationColorString" Value="&amp;K"/>
+  </object>
+</objects>

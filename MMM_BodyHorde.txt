@@ -1,0 +1,25 @@
+﻿using XRL.World.Parts;
+using System;
+
+namespace XRL.World.PartBuilders
+{
+    public class MMM_BodyHorde : IPartBuilder
+    {
+        public MMM_BodyHorde() 
+            : base()
+        {
+        }
+
+        public void BuildPart(IPart iPart, string Context=null)
+        {
+            Body body1 = iPart as Body;
+            if (body1 == null)
+                return;
+            BodyPart body2 = body1.GetBody();
+            body2.AddPart("Head", 0, (string)null, (string)null, (string)null, (string)null, new int?(), new int?(), new int?(), new bool?(), new bool?(), new bool?(), new bool?(), new bool?()).AddPart("Face", 0, (string)null, (string)null, (string)null, (string)null, new int?(), new int?(), new int?(), new bool?(), new bool?(), new bool?(), new bool?(), new bool?());
+            body2.AddPart("Foot", 18, (string)null, "Forefeet", (string)null, (string)null, new int?(), new int?(), new int?(), new bool?(), new bool?(), new bool?(), new bool?(), new bool?());
+            body2.AddPart("Feet", 16, (string)null, (string)null, "Forefeet", (string)null, new int?(), new int?(), new int?(0), new bool?(), new bool?(), new bool?(), new bool?(), new bool?());
+            body1.FinishBuild();
+        }
+    }
+}

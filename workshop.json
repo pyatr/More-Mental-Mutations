@@ -1,0 +1,8 @@
+{
+  "WorkshopId": 1511228072,
+  "Title": "More mental mutations",
+  "Description": "This mod adds several mental mutations\n\n[b]Dynakinesis - 4 MP[/b] - crushes targets from inside, damaging them the more the lesser their toughness is.\n\n[b]Obfuscate - 4 MP[/b] - hides you from creatures with mind and without clairvoyance or psychic sense.\n\n[b]Telekinesis - 4 MP[/b] - you may throw or place creatures (10/40 cooldown) or weapons.\n\n[b]Gravity field - 3 MP[/b] - creates a gravity field that guides away and softens incoming attacks and makes projectiles less likely to hit you.\n\n[b]Presence - 4 MP[/b] - shine your ego at surrounding people. Works diffrently on friendly and hostile creatures inside and outside of combat.\n\n[b]Levitation - 3 MP[/b] - fly for a limited time.\n\nDefects:\n\n[b]Chemical addiction - 4 MP[/b] - about once a day you need to drink alcohol or eat intoxicating items.",
+  "Tags": "Mental, Mutation",
+  "Visibility": "2",
+  "ImagePath": "preview.png"
+}

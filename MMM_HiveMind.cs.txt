@@ -1,0 +1,309 @@
+using Qud.API;
+using System;
+using XRL.Core;
+using XRL.Messages;
+using XRL.Rules;
+using XRL.UI;
+using XRL.World.AI;
+using XRL.World.AI.GoalHandlers;
+using XRL.World.Parts.Effects;
+using System.Collections.Generic;
+
+namespace XRL.World.Parts.Mutation
+{
+    [Serializable]
+    public class MMM_HiveMind : BaseMutation
+    {
+        //Stuff to do: add mentalshield to enthralled creatures
+        public Guid IncorporateActivatedAbilityID = Guid.Empty;
+        public ActivatedAbilityEntry IncorporateActivatedAbility;
+        public Guid TargetControlActivatedAbilityID = Guid.Empty;
+        public ActivatedAbilityEntry TargetControlActivatedAbility;
+        public Guid TargetsAttackActivatedAbilityID = Guid.Empty;
+        public ActivatedAbilityEntry TargetsAttackActivatedAbility;
+        public Guid TargetsMoveToActivatedAbilityID = Guid.Empty;
+        public ActivatedAbilityEntry TargetsMoveToActivatedAbility;
+        public Guid TargetsSurroundMeActivatedAbilityID = Guid.Empty;
+        public ActivatedAbilityEntry TargetsSurroundMeActivatedAbility;
+
+        public GameObject ControlledObject = (GameObject)null;
+        public Brain _pBrain;
+        public string pinnedZone;
+
+        public Brain pBrain
+        {
+            get
+            {
+                if (this._pBrain == null)
+                    this._pBrain = this.ParentObject.GetPart("Brain") as Brain;
+                return this._pBrain;
+            }
+        }
+
+        public List<GameObject> Targets = new List<GameObject>();
+
+        public MMM_HiveMind()
+        {
+            this.DisplayName = "Hive Mind";
+            this.Type = "Mental";
+        }
+
+        public override string GetDescription()
+        {
+            return "You take over creatures mind and submit it to your will. Target creatures gain -20 to quickness (but not movespeed), -20 to intelligence, -20 to willpower. You may take over control of one of your enthralled creatures for 5 turns.";
+        }
+
+        public override string GetLevelText(int Level)
+        {
+            return "Can enthrall " + Level.ToString() + " creatures.";
+        }
+
+        public override void Register(GameObject Object)
+        {
+            Object.RegisterPartEvent((IPart)this, "CommandIncorporateTarget");
+            Object.RegisterPartEvent((IPart)this, "CommandTargetControl");
+            Object.RegisterPartEvent((IPart)this, "CommandTargetsAttack");
+            Object.RegisterPartEvent((IPart)this, "CommandTargetsMoveTo");
+            Object.RegisterPartEvent((IPart)this, "CommandTargetsSurroundMe");
+            Object.RegisterPartEvent((IPart)this, "BeginTakeAction");
+            Object.RegisterPartEvent((IPart)this, "DominationBroken");
+            Object.RegisterPartEvent((IPart)this, "ApplyEffect");
+            Object.RegisterPartEvent((IPart)this, "TakeDamage");
+            this._pBrain = this.ParentObject.GetPart("Brain") as Brain;
+        }
+
+        public void Pin()
+        {
+            this.Unpin();
+            this.pinnedZone = this.ParentObject.pPhysics.CurrentCell.ParentZone.ZoneID;
+            if (XRLCore.Core.Game.ZoneManager.PinnedZones.CleanContains<string>(this.pinnedZone))
+                return;
+            XRLCore.Core.Game.ZoneManager.PinnedZones.Add(this.pinnedZone);
+        }
+
+        public void Unpin()
+        {
+            if (this.pinnedZone == null || !XRLCore.Core.Game.ZoneManager.PinnedZones.CleanContains<string>(this.pinnedZone))
+                return;
+            XRLCore.Core.Game.ZoneManager.PinnedZones.Remove(this.pinnedZone);
+            this.pinnedZone = (string)null;
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if (E.ID == "BeginTakeAction")
+            {
+                if (this.ControlledObject != null && this.ControlledObject.IsNowhere())
+                    this.ControlledObject = (GameObject)null;
+                return true;
+            }
+            if (E.ID == "TakeDamage" || E.ID == "DominationBroken" || E.ID == "ApplyEffect")
+            {
+                if (this.ControlledObject != null)
+                {
+                    if (this.ControlledObject.pPhysics.CurrentCell != null && this.ControlledObject.pPhysics.CurrentCell.ParentZone.IsWorldMap())
+                        this.ControlledObject.PullDown(false);
+                    this.ControlledObject.RemoveEffect(ModManager.ResolveType("XRL.World.Parts.Mutation.Dominated"));
+                    XRLCore.Core.Game.Player.Body = this.ParentObject;
+                    this.ControlledObject = (GameObject)null;
+                    this.pBrain.Goals.Clear();
+                    this.Unpin();
+                }
+                return true;
+            }
+            if (E.ID == "CommandIncorporateTarget")
+            {
+                if (this.Targets.Count <= this.Level)
+                {
+                    Cell cell = this.PickDirection();
+                    if (cell != null)
+                    {
+                        foreach (GameObject GO in cell.GetObjectsWithPart("Brain"))
+                        {
+                            if (GO != this.ParentObject && GO.Statistics.ContainsKey("Level"))
+                            {
+                                if (GO.pBrain.PartyLeader == this.ParentObject && GO.HasEffect("MMM_EffectInHiveMind"))
+                                {
+                                    MessageQueue.AddPlayerMessage(GO.ShortDisplayName + " is already your drone.");
+                                }
+                                else
+                                {
+                                    Brain part = GO.GetPart("Brain") as Brain;
+                                    int num = Stat.Roll("1d4") + this.ParentObject.Statistics["Ego"].Modifier;
+                                    if (this.ParentObject.Statistics["Level"].BaseValue < GO.Statistics["Level"].BaseValue || Stats.GetCombatMA(GO) >= num)
+                                    {
+                                        GO.pBrain.GetAngryAt(this.ParentObject, -50);
+                                        MessageQueue.AddPlayerMessage("You fail to steal " + GO.The + GO.ShortDisplayName + "'s mind.");
+                                        this.ParentObject.UseEnergy(1000, "Mental Mutation");
+                                    }
+                                    else
+                                    {
+                                        if (this.ParentObject.IsPlayer())
+                                        {
+                                            if (!GO.HasEffect("MMM_EffectInHiveMind"))
+                                                MessageQueue.AddPlayerMessage(GO.ShortDisplayName + " joins your consciousness.");
+                                            else if (GO.pBrain.PartyLeader != this.ParentObject)
+                                                MessageQueue.AddPlayerMessage("You steal " + GO.ShortDisplayName + " from " + GO.pBrain.PartyLeader.ShortDisplayName + ".");
+                                        }
+                                        for (int index = 0; index < 0; ++index)//This looks dumb
+                                        {
+                                            int x = this.ParentObject.pPhysics.CurrentCell.X;
+                                            int y = this.ParentObject.pPhysics.CurrentCell.Y;
+                                            ParticleManager particleManager = XRLCore.ParticleManager;
+                                            particleManager.AddSinusoidal("&M~", (float)x, (float)y, 1.5f * (float)Stat.Random(1, 6), 0.1f * (float)Stat.Random(1, 60), (float)(0.100000001490116 + 0.025000000372529 * (double)Stat.Random(0, 4)), 1f, 0.0f, 0.0f, (float)(-0.100000001490116 - 0.0500000007450581 * (double)Stat.Random(1, 6)), 999);
+                                            particleManager.AddSinusoidal("&Y~", (float)x, (float)y, 1.5f * (float)Stat.Random(1, 6), 0.1f * (float)Stat.Random(1, 60), (float)(0.100000001490116 + 0.025000000372529 * (double)Stat.Random(0, 4)), 1f, 0.0f, 0.0f, (float)(-0.100000001490116 - 0.0500000007450581 * (double)Stat.Random(1, 6)), 999);
+                                            particleManager.AddSinusoidal("&m~", (float)x, (float)y, 1.5f * (float)Stat.Random(1, 6), 0.1f * (float)Stat.Random(1, 60), (float)(0.100000001490116 + 0.025000000372529 * (double)Stat.Random(0, 4)), 1f, 0.0f, 0.0f, (float)(-0.100000001490116 - 0.0500000007450581 * (double)Stat.Random(1, 6)), 999);
+                                            particleManager.AddSinusoidal("&y~", (float)x, (float)y, 1.5f * (float)Stat.Random(1, 6), 0.1f * (float)Stat.Random(1, 60), (float)(0.100000001490116 + 0.025000000372529 * (double)Stat.Random(0, 4)), 1f, 0.0f, 0.0f, (float)(-0.100000001490116 - 0.0500000007450581 * (double)Stat.Random(1, 6)), 999);
+                                        }
+                                        if (GO != null && !GO.IsNowhere())
+                                            GO.pBrain.PartyLeader = (GameObject)null;
+                                        part.BecomeCompanionOf(this.ParentObject);
+                                        part.AdjustFeeling(this.ParentObject, 1000);
+                                        GO.ApplyEffect((Effect)new MMM_EffectInHiveMind(this.ParentObject));
+                                        this.Targets.Add(GO);
+                                        this.ParentObject.UseEnergy(1000, "Mental Mutation");
+                                    }
+                                    this.IncorporateActivatedAbility.Cooldown = 310;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (this.ParentObject.IsPlayer())
+                    {
+                        Popup.Show("You have too much drones to incorporate any more.", false);
+                    }
+                }
+                return true;
+            }
+            if (E.ID == "CommandTargetControl")
+            {
+                Cell C = this.PickDestinationCell(80, AllowVis.OnlyVisible, true, PickTarget.PickStyle.EmptyCell);
+                if (C == null)
+                    return true;
+                GameObject GO3 = (GameObject)null;
+                foreach (GameObject GO2 in C.GetObjectsInCell())
+                {
+                    if (GO2.HasEffect("MMM_EffectInHiveMind"))
+                    {
+                        if (GO2.pBrain.PartyLeader == this.ParentObject)//So you don't take over someone elses drone
+                        {
+                            GO3 = GO2;
+                            break;
+                        }
+                    }
+                }
+                if (GO3 != null)
+                {
+                    GO3.ApplyEffect((Effect)new Dominated(this.ParentObject, 6));
+                    this.ControlledObject = GO3;
+                    MessageQueue.AddPlayerMessage("&mYou take control of " + GO3.the + GO3.DisplayName + "!");
+                    this.Pin();
+                    this.pBrain.PushGoal((GoalHandler)new Dormant(-1));
+                    XRLCore.Core.Game.Player.Body = GO3;
+                    this.TargetControlActivatedAbility.Cooldown = 810;
+                }
+                return true;
+            }
+            if (E.ID == "CommandTargetsAttack")
+            {
+                if (this.Targets.Count > 0)
+                {
+                    Cell C = this.PickDestinationCell(80, AllowVis.OnlyVisible, true, PickTarget.PickStyle.EmptyCell);
+
+                    GameObject GO4 = (GameObject)null;
+                    foreach (GameObject GO2 in C.GetObjectsInCell())
+                    {
+                        if (GO2.HasPart("Combat"))
+                        {
+                            GO4 = GO2;
+                        }
+                    }
+                    if (GO4 != null)
+                    {
+                        foreach (GameObject GO5 in this.Targets)
+                        {
+                            GO5.pBrain.Goals.Clear();
+                            GO5.pBrain.Target = GO4;
+                        }
+                    }
+                }
+                return true;
+            }
+            if (E.ID == "CommandTargetsMoveTo")
+            {
+                //Not working because MoveTo is somehow protected
+                /*Cell C = this.PickDestinationCell(80, AllowVis.OnlyVisible, true, PickTarget.PickStyle.EmptyCell);
+
+                if (this.Targets.Count > 0)
+                {
+                    foreach (GameObject GO7 in this.Targets)
+                    {
+                        Brain part = GO7.GetPart("Brain") as Brain;
+                        part.Goals.Clear();
+                        part.PushGoal((GoalHandler)new MoveTo(this.ParentObject.pPhysics.CurrentCell.ParentZone.ZoneID, C.X, C.Y, false));
+                    }
+                }*/                
+                return true;
+            }
+            if (E.ID == "CommandTargetsSurroundMe")
+            {
+                if (this.Targets.Count > 0)
+                {
+                    foreach (GameObject GO6 in this.Targets)
+                    {
+                        GO6.pBrain.Goals.Clear();
+                    }
+                }
+                return true;
+            }
+            return base.FireEvent(E);
+        }
+
+        public override bool ChangeLevel(int NewLevel)
+        {
+            return base.ChangeLevel(NewLevel);
+        }
+
+        public override bool Mutate(GameObject GO, int Level)
+        {
+            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
+            if (part != null)
+            {
+                this.IncorporateActivatedAbilityID = part.AddAbility("Incorporate", "CommandIncorporateTarget", "Hive Mind", 0);
+                this.IncorporateActivatedAbility = part.AbilityByGuid[this.IncorporateActivatedAbilityID];
+                this.IncorporateActivatedAbility.Enabled = true;
+                this.TargetControlActivatedAbilityID = part.AddAbility("Control drone", "CommandTargetControl", "Hive Mind", 0);
+                this.TargetControlActivatedAbility = part.AbilityByGuid[this.TargetControlActivatedAbilityID];
+                this.TargetControlActivatedAbility.Enabled = true;
+                this.TargetsAttackActivatedAbilityID = part.AddAbility("Attack", "CommandTargetsAttack", "Hive Mind", 0);
+                this.TargetsAttackActivatedAbility = part.AbilityByGuid[this.TargetsAttackActivatedAbilityID];
+                this.TargetsAttackActivatedAbility.Enabled = true;
+                //this.TargetsMoveToActivatedAbilityID = part.AddAbility("Move to", "CommandTargetsMoveTo", "Hive Mind", 0);
+                //this.TargetsMoveToActivatedAbility = part.AbilityByGuid[this.TargetsMoveToActivatedAbilityID];
+                //this.TargetsMoveToActivatedAbility.Enabled = true;
+                this.TargetsSurroundMeActivatedAbilityID = part.AddAbility("Fall back", "CommandTargetsSurroundMe", "Hive Mind", 0);
+                this.TargetsSurroundMeActivatedAbility = part.AbilityByGuid[this.TargetsSurroundMeActivatedAbilityID];
+                this.TargetsSurroundMeActivatedAbility.Enabled = true;
+            }
+            return base.Mutate(GO, Level);
+        }
+
+        public override bool Unmutate(GameObject GO)
+        {
+            if (this.IncorporateActivatedAbilityID != Guid.Empty)
+                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.IncorporateActivatedAbilityID);
+            if (this.TargetControlActivatedAbilityID != Guid.Empty)
+                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.TargetControlActivatedAbilityID);
+            if (this.TargetsAttackActivatedAbilityID != Guid.Empty)
+                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.TargetsAttackActivatedAbilityID);
+            if (this.TargetsMoveToActivatedAbilityID != Guid.Empty)
+                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.TargetsMoveToActivatedAbilityID);
+            if (this.TargetsSurroundMeActivatedAbilityID != Guid.Empty)
+                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.TargetsSurroundMeActivatedAbilityID);
+            return base.Unmutate(GO);
+        }
+    }
+}

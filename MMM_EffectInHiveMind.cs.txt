@@ -1,0 +1,77 @@
+using System;
+using System.Collections.Generic;
+using XRL.Core;
+using XRL.Messages;
+using XRL.World.Parts;
+using XRL.World.AI;
+using XRL.World.AI.GoalHandlers;
+
+namespace XRL.World.Parts.Effects
+{
+    [Serializable]
+    public class MMM_EffectInHiveMind : Effect
+    {
+        public GameObject Master = (GameObject)null;
+
+        public MMM_EffectInHiveMind(GameObject Master)
+        {
+            this.Master = Master;
+            this.DisplayName = "&rIn a hive mind";
+            this.Duration = 1;
+        }
+
+        public override string GetDetails()
+        {
+            return "&o*duuuh*";
+        }
+
+        public override bool Apply(GameObject Object)
+        {
+            Object.Statistics["Speed"].Penalty += 20;
+            Object.Statistics["MA"].Bonus += 100;
+            Object.Statistics["MoveSpeed"].Bonus -= 40;
+            Object.Statistics["Willpower"].Penalty += 20;
+            Object.Statistics["Intelligence"].Penalty += 20;
+            Object.Statistics["Ego"].Penalty += 20;
+            return true;
+        }
+
+        public override void Remove(GameObject Object)
+        {
+            Object.Statistics["Speed"].Penalty -= 20;
+            Object.Statistics["MA"].Bonus -= 100;
+            Object.Statistics["MoveSpeed"].Bonus += 40;
+            Object.Statistics["Willpower"].Penalty -= 20;
+            Object.Statistics["Intelligence"].Penalty -= 20;
+            Object.Statistics["Ego"].Penalty -= 20;
+            this.Master = (GameObject)null;
+        }
+
+        public override void Register(GameObject Object)
+        {
+            Object.RegisterEffectEvent((Effect)this, "EndTurn");
+        }
+
+        public override void Unregister(GameObject Object)
+        {
+            Object.UnregisterEffectEvent((Effect)this, "EndTurn");
+        }
+
+        public override bool FireEvent(Event E)
+        {
+            if (E.ID == "EndTurn")
+            {
+                if (this.Object.GetPart<Brain>().PartyLeader != this.Master && this.Object.GetPart<Brain>().PartyLeader != (GameObject)null)
+                {
+                    this.Object.GetPart<Brain>().PartyLeader = this.Master;
+                }
+                if (this.Object.GetPart<Brain>().PartyLeader == (GameObject)null || this.Object.GetPart<Brain>().PartyLeader.IsNowhere())
+                {
+                    this.Duration = 0;
+                }
+                return true;
+            }
+            return base.FireEvent(E);
+        }
+    }
+}

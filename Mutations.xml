@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mutations>
+ <category Name="Mental" Stat="Ego">
+    <mutation Name="Dynakinesis" Cost="4" MaxSelected="1" Class="MMM_Dynakineticism" BearerDescription="" Exclusions="" Code="qa"></mutation>
+    <mutation Name="Obfuscate" Cost="4" MaxSelected="1" Class="MMM_Obfuscate" BearerDescription="" Exclusions="" Code="qb"></mutation>
+<!--<mutation Name="Obtenebration" Cost="5" MaxSelected="1" Class="MMM_Obtenebration" BearerDescription="" Exclusions="" Code="qc"></mutation>-->
+    <mutation Name="Telekinesis" Cost="4" MaxSelected="1" Class="MMM_Telekinesis" BearerDescription="" Exclusions="" Code="qd"></mutation>
+    <mutation Name="Gravity Field" Cost="3" MaxSelected="1" Class="MMM_GravityField" BearerDescription="" Exclusions="" Code="qe"></mutation>
+    <mutation Name="Presence" Cost="4" MaxSelected="1" Class="MMM_Presence" BearerDescription="" Exclusions="" Code="qf"></mutation>
+    <mutation Name="Levitation" Cost="3" MaxSelected="1" Class="MMM_Levitation" BearerDescription="" Exclusions="Wings" Code="qg"></mutation>
+<!--<mutation Name="Hive Mind" Cost="6" MaxSelected="1" Class="MMM_HiveMind" BearerDescription="" Exclusions="" Code="qh"></mutation>-->
+<!--<mutation Name="Summoning" Cost="5" MaxSelected="1" Class="MMM_Summoning" BearerDescription="" Exclusions="" Code="qj"></mutation>-->
+<!--<mutation Name="Hypnotize" Cost="2" MaxSelected="1" Class="MMM_Hypnotising" BearerDescription="" Exclusions="" Code="qk"></mutation>-->
+<!--<mutation Name="Vicissitude" Cost="5" MaxSelected="1" Class="MMM_Vicissitude" BearerDescription="" Exclusions="" Code="ql"></mutation>-->
+<!--<mutation Name="Chimerstry" Cost="5" MaxSelected="1" Class="MMM_Chimerstry" BearerDescription="" Exclusions="" Code="qm"></mutation>-->
+  </category>
+  
+  <category Name="MentalDefects" DisplayName="&amp;RMental Defects">
+    <mutation Name="Chemical addiction" Cost="-4" MaxSelected="1" Class="MMM_DefectChemicalAddiction" Exclusions="" BearerDescription="the drunkards" Code="qq"></mutation>
+  </category>  
+</mutations>
