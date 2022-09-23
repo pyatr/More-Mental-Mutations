@@ -14,6 +14,19 @@ namespace XRL.World.Parts.Mutation
     [Serializable]
     public class MMM_Telekinesis : BaseMutation
     {
+        private const int BASE_TELEKINESIS_RANGE = 5;
+        private const int BASE_TELEKINESIS_LIFT_WEIGHT = 200;
+
+        private const int TELEKINESIS_RANGE_PER_LEVEL = 2;
+        private const int TELEKINESIS_STRENGTH_PER_LEVEL = 2;
+
+        private const int THROW_RANGE_MOD = -2;
+        private const int PICKUP_RANGE_MOD = -2;
+
+        public int TelekinesisRange => (BASE_TELEKINESIS_RANGE + Level / TELEKINESIS_RANGE_PER_LEVEL);
+        public int TelekinesisStrength => this.Level + TELEKINESIS_STRENGTH_PER_LEVEL;
+        public int LiftWeight => BASE_TELEKINESIS_LIFT_WEIGHT * this.Level;
+
         public Guid TelekinesisGentlyPickupAndPlaceCreatureActivatedAbilityID = Guid.Empty;
         public Guid TelekinesisPickupActivatedAbilityID = Guid.Empty;
         public Guid TelekinesisThrowActivatedAbilityID = Guid.Empty;
@@ -27,27 +40,10 @@ namespace XRL.World.Parts.Mutation
         //public ActivatedAbilityEntry TelekinesisSwitchLaunchTypes;
         //public ActivatedAbilityEntry TelekinesisPickUpPreviousWeapon;
 
-        //int PickupRangeMod = -2;
-        int ThrowRangeMod = -2;
-        GameObject lastThrownWeapon;
+        private GameObject lastThrownWeapon;
 
         public int BasicCooldown = 10;
         public string TelekinesisDamage = "1d6";
-        public int TelekinesisStrength
-        {
-            get
-            {
-                return this.Level + 2;
-            }
-        }
-
-        public int LiftWeight
-        {
-            get
-            {
-                return 200 * this.Level;
-            }
-        }
 
         public MMM_Telekinesis()
         {
@@ -69,27 +65,25 @@ namespace XRL.World.Parts.Mutation
             return "You possess telekinetic powers.";
         }
 
-        public int GetTelekinesisRange()
-        {
-            return (5 + Level / 2);
-        }
-
         public override string GetLevelText(int Level)
         {
-            return "Your telekinesis range is " + GetTelekinesisRange().ToString() + ".\n" + "You may pick up objects from the ground or lift and place creatures.\n" + "You may lift and throw creatures not heavier than " + (Level * 200).ToString() + " lbs., damaging them and object they hit for " + this.TelekinesisDamage + " with penetration equal to 2 + Level - AV value.\n" + "You may also throw melee weapons - they will not take damage and damage roll will be their base damage instead." + "\nCooldown: " + this.BasicCooldown.ToString() + ", or " + (this.BasicCooldown * 4).ToString() + " if you moved a creature.";
+            return $"Your telekinesis range is {TelekinesisRange}.\nYou may pick up objects from the ground or lift and place creatures.\nYou may lift and throw creatures not heavier than {(Level * 200)} lbs., damaging them and object they hit for {TelekinesisDamage} with penetration equal to 2 + Level - AV value.\n" + "You may also throw melee weapons - they will not take damage and damage roll will be their base damage instead." + "\nCooldown: " + this.BasicCooldown.ToString() + ", or " + (this.BasicCooldown * 4).ToString() + " if you moved a creature.";
         }
 
         public bool ObjectIsWeapon(GameObject GO)
         {
-            if (GO.HasPart("MeleeWeapon"))
+            MeleeWeapon mw = GO.GetPart<MeleeWeapon>();
+            if (mw != null)
             {
-                if (GO.GetPart<MeleeWeapon>().BaseDamage == "1d2" && GO.DisplayName != "iron mace" && !GO.HasPart("MissileWeapon"))
-                    return false;
-                else
-                    return true;
+                //I can't remember why is iron mace an exception
+                return !(mw.BaseDamage == "1d2"
+                        && GO.DisplayName != "iron mace"
+                        && !GO.HasPart("MissileWeapon"));
             }
             return false;
         }
+
+        private void Log(string message) => MessageQueue.AddPlayerMessage(message);
 
         public override bool FireEvent(Event E)
         {
@@ -98,8 +92,7 @@ namespace XRL.World.Parts.Mutation
                 string direction = ".";
                 direction = this.PickDirectionS();
 
-                //MessageQueue.AddPlayerMessage("Direction was [" + direction + "]");
-                if (direction != "." && direction != null)
+                if (direction != "." && !string.IsNullOrEmpty(direction))
                 {
                     GameObject thrownWeapon = (GameObject)null;
                     Body body = this.ParentObject.GetPart("Body") as Body;
@@ -126,7 +119,7 @@ namespace XRL.World.Parts.Mutation
                         string RealTelekinesisDamage = TelekinesisDamage;
                         int HitStrength = TelekinesisStrength;
                         int i;
-                        string message = "";
+                        string message = string.Empty;
 
                         if (this.ParentObject.IsPlayer())
                             message += "You ";
@@ -149,10 +142,10 @@ namespace XRL.World.Parts.Mutation
                             message += thrownWeapon.its;
                         message += " telekinetic power!";
 
-                        MessageQueue.AddPlayerMessage(message);
+                        Log(message);
 
                         GameObject PossibleTarget = (GameObject)null;
-                        for (i = 0; i < GetTelekinesisRange() + ThrowRangeMod; i++)
+                        for (i = 0; i < TelekinesisRange + THROW_RANGE_MOD; i++)
                         {
                             List<GameObject> ObjectsSomewhereElse = thrownWeapon.pPhysics.CurrentCell.GetCellFromDirection(direction, true).GetObjectsInCell();
 
@@ -161,7 +154,7 @@ namespace XRL.World.Parts.Mutation
                                 if (GO2.pPhysics.Solid == true)
                                 {
                                     PossibleTarget = GO2;
-                                    i = GetTelekinesisRange();
+                                    i = TelekinesisRange;
                                     break;
                                 }
                             }
@@ -170,7 +163,7 @@ namespace XRL.World.Parts.Mutation
                                 if (GO3.HasPart("Combat"))
                                 {
                                     PossibleTarget = GO3;
-                                    i = GetTelekinesisRange();
+                                    i = TelekinesisRange;
                                     break;
                                 }
                             }
@@ -246,11 +239,11 @@ namespace XRL.World.Parts.Mutation
             }
             if (E.ID == "CommandTelekinesisThrow")
             {
-                Cell C = this.PickDestinationCell(GetTelekinesisRange(), AllowVis.OnlyVisible, true);
+                Cell C = this.PickDestinationCell(TelekinesisRange, AllowVis.OnlyVisible, true);
                 if (C == null)
                     return false;
 
-                if (C.DistanceTo(this.ParentObject) > GetTelekinesisRange())
+                if (C.DistanceTo(this.ParentObject) > TelekinesisRange)
                 {
                     if (this.ParentObject.IsPlayer())
                         Popup.Show("That's too far.", true);
@@ -557,11 +550,11 @@ namespace XRL.World.Parts.Mutation
                 if (GO != null && Player != null)
                 {
                     XRLCore.Core.Game.Player.Body = GO; //For target picking which can only begin from player object
-                    C2 = PickTarget.ShowPicker(PickTarget.PickStyle.Line, GetTelekinesisRange(), GetTelekinesisRange(), GO.pPhysics.CurrentCell.X, GO.pPhysics.CurrentCell.Y, false, AllowVis.OnlyVisible, (Predicate<GameObject>)null, this.ParentObject);
+                    C2 = PickTarget.ShowPicker(PickTarget.PickStyle.Line, TelekinesisRange, TelekinesisRange, GO.pPhysics.CurrentCell.X, GO.pPhysics.CurrentCell.Y, false, AllowVis.OnlyVisible);
                     XRLCore.Core.Game.Player.Body = Player;
                     if (C2 != null)
                     {
-                        if (C2.DistanceTo(GO) <= GetTelekinesisRange())
+                        if (C2.DistanceTo(GO) <= TelekinesisRange)
                         {
                             List<Point> pointList = Zone.Line(this.ParentObject.pPhysics.CurrentCell.X, this.ParentObject.pPhysics.CurrentCell.Y, C2.X, C2.Y);
                             int num = 0;
@@ -610,8 +603,8 @@ namespace XRL.World.Parts.Mutation
                 Popup._TextConsole.DrawBuffer(Popup._ScreenBuffer, (IScreenBufferExtra)null, false);
                 char key = 'a';
                 Cell cell;
-                cell = PickTarget.ShowPicker(PickTarget.PickStyle.Line, this.Level, this.Level, this.ParentObject.pPhysics.CurrentCell.X, this.ParentObject.pPhysics.CurrentCell.Y, false, AllowVis.OnlyVisible, (Predicate<GameObject>)null, this.ParentObject);
-                if (cell.DistanceTo(this.ParentObject) > GetTelekinesisRange())
+                cell = PickTarget.ShowPicker(PickTarget.PickStyle.Line, this.Level, this.Level, this.ParentObject.pPhysics.CurrentCell.X, this.ParentObject.pPhysics.CurrentCell.Y, false, AllowVis.OnlyVisible);
+                if (cell.DistanceTo(this.ParentObject) > TelekinesisRange)
                 {
                     MessageQueue.AddPlayerMessage("You can't reach that far.");
                     return true;
@@ -635,12 +628,12 @@ namespace XRL.World.Parts.Mutation
                 }
 
                 bool requestInterfaceExit = false;
-                if (objectsToPickUp.Count == 0)                
-                    if (this.ParentObject.IsPlayer())                    
-                        Popup.Show("There's nothing to take.", true);                                    
-                else if (objectsToPickUp.Count > 0)                
-                    PickItem.ShowPicker(new List<XRL.World.GameObject>((IEnumerable<XRL.World.GameObject>)objectsToPickUp.Values), ref requestInterfaceExit, (string)null, PickItem.PickItemDialogStyle.GetItemDialog, this.ParentObject);
-                
+                if (objectsToPickUp.Count == 0)
+                    if (this.ParentObject.IsPlayer())
+                        Popup.Show("There's nothing to take.", true);
+                    else if (objectsToPickUp.Count > 0)
+                        PickItem.ShowPicker(new List<XRL.World.GameObject>((IEnumerable<XRL.World.GameObject>)objectsToPickUp.Values), ref requestInterfaceExit, (string)null, PickItem.PickItemDialogStyle.GetItemDialog, this.ParentObject);
+
                 this.ParentObject.UseEnergy(1000, "Mental");
                 return true;
             }
@@ -710,3 +703,10 @@ namespace XRL.World.Parts.Mutation
         }
     }
 }
+
+
+/*=== More mental mutations Errors ===
+\MMM_Telekinesis.cs(560,233): error CS1503: Argument 9: cannot convert from 'XRL.World.GameObject' to 'System.Predicate<XRL.World.GameObject>'
+\MMM_Telekinesis.cs(613,239): error CS1503: Argument 9: cannot convert from 'XRL.World.GameObject' to 'System.Predicate<XRL.World.GameObject>'
+== Warnings ==
+\MMM_Obtenebration.cs(85,35): warning CS0219: The variable 'allCells' is assigned but its value is never used*/

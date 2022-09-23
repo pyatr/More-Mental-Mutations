@@ -13,67 +13,17 @@ namespace XRL.World.Parts.Mutation
     [Serializable]
     public class MMM_Levitation : BaseMutation, IFlightSource
     {
-        public int BaseFallChance = 0;
-        public Guid _FlightActivatedAbilityID = Guid.Empty;
-        public bool _FlightFlying;
-        public int Cooldown = 40;
-        int _Duration = 20;
+        private int BASE_FLIGHT_DURATION = 20;
+        private int ADDITIONAL_TURNS_PER_LEVEL = 3;
 
-        public int Duration
-        {
-            get
-            {
-                return this.Level * 2 + _Duration;
-            }
-        }
+        public int Duration => this.Level * ADDITIONAL_TURNS_PER_LEVEL + BASE_FLIGHT_DURATION;
+        public int FlightLevel => this.Level;
+        public int FlightBaseFallChance => this.BaseFallChance;
 
-        public int FlightLevel
-        {
-            get
-            {
-                return this.Level;
-            }
-        }
-
-        public int FlightBaseFallChance
-        {
-            get
-            {
-                return this.BaseFallChance;
-            }
-        }
-
-        public bool FlightRequiresOngoingEffort
-        {
-            get
-            {
-                return true;
-            }
-        }
-
-        public string FlightEvent
-        {
-            get
-            {
-                return "CommandFlight";
-            }
-        }
-
-        public string FlightActivatedAbilityClass
-        {
-            get
-            {
-                return "Mental Mutation";
-            }
-        }
-
-        public string FlightSourceDescription
-        {
-            get
-            {
-                return (string)null;
-            }
-        }
+        public bool FlightRequiresOngoingEffort => true;
+        public string FlightEvent => "CommandFlight";
+        public string FlightActivatedAbilityClass => "Mental Mutation";
+        public string FlightSourceDescription => string.Empty;
 
         public bool FlightFlying
         {
@@ -99,6 +49,11 @@ namespace XRL.World.Parts.Mutation
             }
         }
 
+        public int BaseFallChance = 0;
+        public Guid _FlightActivatedAbilityID = Guid.Empty;
+        public bool _FlightFlying;
+        public int Cooldown = 40;
+
         public override IPart DeepCopy(GameObject Parent)
         {
             MMM_Levitation MMM_Levitation = base.DeepCopy(Parent) as MMM_Levitation;
@@ -107,7 +62,7 @@ namespace XRL.World.Parts.Mutation
 
         public MMM_Levitation()
         {
-            this.DisplayName = "Levitation";//nameof(MMM_Levitation);
+            this.DisplayName = "Levitation";
         }
 
         public override bool GeneratesEquipment()
@@ -141,13 +96,13 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetDescription()
         {
-            return "You levitate.";
+            return "You can levitate.";
         }
 
         public override string GetLevelText(int Level)
         {
             StringBuilder stringBuilder = Event.NewStringBuilder((string)null);
-            stringBuilder.Append("You may levitate outside and underground for " + Duration + " turns (you cannot be hit in melee by grounded creatures while levitating). You may not levitate while travelling.\n Cooldown: " + Cooldown + "\n");
+            stringBuilder.Append($"You may levitate outside and underground for {Duration} turns (you cannot be hit in melee by grounded creatures while levitating). You may not levitate while travelling.\n Cooldown: {Cooldown}\n");
             return stringBuilder.ToString();
         }
 
@@ -163,18 +118,18 @@ namespace XRL.World.Parts.Mutation
                     MessageQueue.AddPlayerMessage("You begin levitating!", 'g');
                 else if (Object.IsVisible())
                     MessageQueue.AddPlayerMessage(Object.The + Object.ShortDisplayName + Object.GetVerb("begin", true, false) + " levitating.");
-                Object.ApplyEffect((Effect)new MMM_EffectLevitation(20 + this.Level * 3, this.ParentObject));
+                Object.ApplyEffect((Effect)new MMM_EffectLevitation(Duration, this.ParentObject));
                 Object.MovementModeChanged("Flying", false);
             }
             else if (Object.IsPlayer())
                 MessageQueue.AddPlayerMessage("You cannot levitate and fly at the same time.", 'g');
-            
+
             FS.FlightFlying = true;
             Object.ApplyEffect((Effect)new Flying(FS.FlightLevel, Source), (GameObject)null);
             Object.RemoveEffect("Prone", false);
             Object.ToggleActivatedAbility(FS.FlightActivatedAbilityID);
             Object.FireEvent("FlightStarted");
-            ObjectStartedFlyingEvent.SendFor(Object);            
+            ObjectStartedFlyingEvent.SendFor(Object);
             return true;
         }
 
