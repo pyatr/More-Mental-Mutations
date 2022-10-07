@@ -511,7 +511,8 @@ namespace XRL.World.Parts.Mutation
                             message += ddamage2.Amount.ToString();
                             message += " damage from ";
                             message += GO.DisplayName;
-                            if (GO.GetPart<MeleeWeapon>().Skill == "LongBlades" || GO.GetPart<MeleeWeapon>().Skill == "ShortBlades" || GO.GetPart<MeleeWeapon>().Skill == "Axe")
+                            MeleeWeapon mw = GO.GetPart<MeleeWeapon>();
+                            if (mw.Skill == "LongBlades" || mw.Skill == "ShortBlades" || mw.Skill == "Axe")
                                 message += " piercing into ";
                             else
                                 message += " slamming into ";
@@ -519,11 +520,12 @@ namespace XRL.World.Parts.Mutation
                             MessageQueue.AddPlayerMessage(message);
                         }
                     }
+                    this.TelekinesisGentlyPickupAndPlaceCreatureActivatedAbility.Cooldown = this.BasicCooldown * 10 + 10;
+                    this.TelekinesisThrowActivatedAbility.Cooldown = this.BasicCooldown * 10 + 10;
+                    this.ParentObject.UseEnergy(1000, "Mental");
+                    return true;
                 }
-                this.TelekinesisGentlyPickupAndPlaceCreatureActivatedAbility.Cooldown = this.BasicCooldown * 10 + 10;
-                this.TelekinesisThrowActivatedAbility.Cooldown = this.BasicCooldown * 10 + 10;
-                this.ParentObject.UseEnergy(1000, "Mental");
-                return true;
+                return false;
             }
             if (E.ID == "CommandTelekinesisCreaturePickup")
             {
