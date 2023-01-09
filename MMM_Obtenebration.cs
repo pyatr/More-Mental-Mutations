@@ -82,7 +82,7 @@ namespace XRL.World.Parts.Mutation
                 int x = 0, y = 0;
                 x = part.CurrentCell.X;
                 y = part.CurrentCell.Y;
-                int litCells = 0, allCells = 80 * 25;
+                int litCells = 0;//, allCells = 80 * 25;
                 for (int i = 0; i < Z.Width; i++)
                 {
                     for (int j = 0; j < Z.Height; j++)

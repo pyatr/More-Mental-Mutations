@@ -170,7 +170,7 @@ namespace XRL.World.Parts.Mutation
                 GO.GetPart<Render>().Tile = "items/sw_sword.bmp";
                 Dices = this.Level / 6 + 1;
                 Sides = 1 + (this.Level) % 6;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.bUsesTwoSlots = true; Dices++; Sides += 2; }
+                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.UsesTwoSlots = true; Dices++; Sides += 2; }
             }
             if (this.ChosenWeaponBlueprint == "short sword")
             {
@@ -201,7 +201,7 @@ namespace XRL.World.Parts.Mutation
                 }
                 if (this.SpawnTwohandedActivatedAbility.ToggleState == true)
                 {
-                    GO.pPhysics.bUsesTwoSlots = true;
+                    GO.pPhysics.UsesTwoSlots = true;
                     Bonus += 2;
                 }
             }
@@ -220,7 +220,7 @@ namespace XRL.World.Parts.Mutation
                 GO.GetPart<Render>().RenderString = "/";
                 Dices = 2 + this.Level / 10;
                 Sides = 1 + this.Level % 12;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.bUsesTwoSlots = true; Bonus = 2; }
+                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.UsesTwoSlots = true; Bonus = 2; }
             }
             if (this.ChosenWeaponBlueprint == "mace")
             {
@@ -228,7 +228,7 @@ namespace XRL.World.Parts.Mutation
                 GO.GetPart<Render>().RenderString = "/";
                 Dices = 2 + this.Level / 6;
                 Sides = 1 + this.Level % 3;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.bUsesTwoSlots = true; Bonus = 3; }
+                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.UsesTwoSlots = true; Bonus = 3; }
             }
             if (this.ChosenWeaponBlueprint == "staff")
             {
@@ -238,7 +238,7 @@ namespace XRL.World.Parts.Mutation
                 Sides = 1 + this.Level / 2;
                 if (this.SpawnTwohandedActivatedAbility.ToggleState == true)
                 {
-                    GO.pPhysics.bUsesTwoSlots = true; Dices++;
+                    GO.pPhysics.UsesTwoSlots = true; Dices++;
                 }
             }
 
@@ -246,7 +246,7 @@ namespace XRL.World.Parts.Mutation
             GO.GetPart<MeleeWeapon>().MaxStrengthBonus = this.Level;
             GO.GetPart<MeleeWeapon>().BaseDamage = Dices.ToString() + "d" + Sides.ToString();
             if (Bonus > 0) GO.GetPart<MeleeWeapon>().BaseDamage += "+" + Bonus.ToString();
-            if (GO.pPhysics.bUsesTwoSlots == true)
+            if (GO.pPhysics.UsesTwoSlots == true)
             {
                 GO.DisplayName = "&oextradimensional &btwo-handed " + this.ChosenWeaponBlueprint;
                 GO.pPhysics.Weight *= 10;
@@ -269,7 +269,7 @@ namespace XRL.World.Parts.Mutation
                     List<BodyPart> ReqHands = new List<BodyPart>();
 
                     SpawnedWeapons.Add(SpawnWeapon());
-                    if (SpawnedWeapons[0].pPhysics.bUsesTwoSlots == false && this.SpawnDualWeaponsActivatedAbility.ToggleState)
+                    if (SpawnedWeapons[0].pPhysics.UsesTwoSlots == false && this.SpawnDualWeaponsActivatedAbility.ToggleState)
                         SpawnedWeapons.Add(SpawnWeapon());
 
                     Body part1 = this.ParentObject.GetPart("Body") as Body;
@@ -283,7 +283,7 @@ namespace XRL.World.Parts.Mutation
                         }
                     }
 
-                    if (SpawnedWeapons[0].pPhysics.bUsesTwoSlots != true && this.SpawnDualWeaponsActivatedAbility.ToggleState)//Spawning dual weapons
+                    if (SpawnedWeapons[0].pPhysics.UsesTwoSlots != true && this.SpawnDualWeaponsActivatedAbility.ToggleState)//Spawning dual weapons
                     {
                         int HandNumber = 0;
                         //MessageQueue.AddPlayerMessage(ReqHands.Count.ToString());
@@ -303,7 +303,7 @@ namespace XRL.World.Parts.Mutation
                         }
                     }
 
-                    if (SpawnedWeapons[0].pPhysics.bUsesTwoSlots)//Spawning two-handed weapons
+                    if (SpawnedWeapons[0].pPhysics.UsesTwoSlots)//Spawning two-handed weapons
                     {
                         foreach (BodyPart bodyPart in ReqHands)
                         {

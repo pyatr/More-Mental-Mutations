@@ -10,7 +10,7 @@ namespace XRL.World.Parts
     {
         public MMM_Darkness()
         {
-            this.Name = nameof(MMM_Darkness);
+            //this.Name = nameof(MMM_Darkness);
         }
 
         public override bool SameAs(IPart p)

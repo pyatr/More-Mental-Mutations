@@ -8,7 +8,7 @@ namespace XRL.World.Parts
     {
         public MMM_NoDominate()
         {
-            Name = "Can't be dominated";
+            //Name = "Can't be dominated";
         }
 
         public override bool SameAs(IPart p)

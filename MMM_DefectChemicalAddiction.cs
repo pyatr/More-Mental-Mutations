@@ -22,7 +22,7 @@ namespace XRL.World.Parts.Mutation
 
         public MMM_DefectChemicalAddiction()
         {
-            this.Name = nameof(MMM_DefectChemicalAddiction);
+            //this.Name = nameof(MMM_DefectChemicalAddiction);
             this.DisplayName = "Chemical addiction (&rD&y)";
         }
 

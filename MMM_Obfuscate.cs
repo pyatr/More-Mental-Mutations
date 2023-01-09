@@ -56,10 +56,9 @@ namespace XRL.World.Parts.Mutation
             {
                 if (this.ParentObject.HasEffect("MMM_EffectObfuscated"))                
                     this.ParentObject.RemoveEffect("MMM_EffectObfuscated");
-                //this.ParentObject.UseEnergy(1000, "Mental");
                 return true;
             }
-            return true;
+            return base.FireEvent(E);
         }
 
         public override bool ChangeLevel(int NewLevel)

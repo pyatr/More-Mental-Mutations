@@ -83,8 +83,6 @@ namespace XRL.World.Parts.Mutation
             return false;
         }
 
-        private void Log(string message) => MessageQueue.AddPlayerMessage(message);
-
         public override bool FireEvent(Event E)
         {
             if (E.ID == "CommandTelekinesisThrowWeapon")
@@ -142,7 +140,7 @@ namespace XRL.World.Parts.Mutation
                             message += thrownWeapon.its;
                         message += " telekinetic power!";
 
-                        Log(message);
+                        MessageQueue.AddPlayerMessage(message);
 
                         GameObject PossibleTarget = (GameObject)null;
                         for (i = 0; i < TelekinesisRange + THROW_RANGE_MOD; i++)
