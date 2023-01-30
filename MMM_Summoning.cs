@@ -5,6 +5,7 @@ using XRL.Messages;
 using XRL.UI;
 using XRL.Rules;
 using XRL.World;
+using XRL.World.Anatomy;
 using XRL.World.Parts;
 using XRL.World.Parts.Effects;
 using ConsoleLib.Console;

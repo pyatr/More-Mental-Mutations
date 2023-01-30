@@ -7,8 +7,9 @@ using XRL.UI;
 using XRL.World.AI.GoalHandlers;
 using XRL.World;
 using XRL.World.Parts;
-using XRL.Liquids;
 using XRL.World.Parts.Effects;
+using XRL.World.Anatomy;
+using XRL.Liquids;
 
 namespace XRL.World.Parts.Mutation
 {

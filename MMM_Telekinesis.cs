@@ -2,12 +2,13 @@ using ConsoleLib.Console;
 using System;
 using System.Collections.Generic;
 using XRL.World;
+using XRL.World.Parts;
+using XRL.World.Effects;
+using XRL.World.Anatomy;
 using XRL.Messages;
 using XRL.UI;
 using XRL.Core;
-using XRL.World.Parts;
 using XRL.Rules;
-using XRL.World.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
