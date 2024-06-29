@@ -79,23 +79,20 @@ namespace XRL.World.Parts.Effects
 
         public void UnapplyEffect()
         {
-            if (GameObject.validate(ref this.PresenceEmanator))
+            if (this.Feeling > 0)
             {
-                if (this.Feeling > 0)
-                {
-                    if (HostilesNearby)
-                        Object.Statistics["Willpower"].Bonus -= this.Strength;
-                    else
-                        Object.Statistics["Willpower"].Penalty -= this.Strength;
-                    Object.Statistics["Strength"].Bonus -= this.Strength;
-                }
+                if (HostilesNearby)
+                    Object.Statistics["Willpower"].Bonus -= this.Strength;
                 else
-                {
                     Object.Statistics["Willpower"].Penalty -= this.Strength;
-                    Object.Statistics["MoveSpeed"].Penalty -= 10;
-                    Object.Statistics["DV"].Penalty -= this.Strength * 2;
-                    Object.ModIntProperty("HitBonus", this.Strength);
-                }
+                Object.Statistics["Strength"].Bonus -= this.Strength;
+            }
+            else
+            {
+                Object.Statistics["Willpower"].Penalty -= this.Strength;
+                Object.Statistics["MoveSpeed"].Penalty -= 10;
+                Object.Statistics["DV"].Penalty -= this.Strength * 2;
+                Object.ModIntProperty("HitBonus", this.Strength);
             }
             this.PresenceEmanator = (GameObject)null;
         }
@@ -118,7 +115,7 @@ namespace XRL.World.Parts.Effects
         {
             if (E.ID == TriggerEvent)
             {
-                if (GameObject.validate(ref this.PresenceEmanator))
+                if (GameObject.validate(ref this.PresenceEmanator) && this.PresenceEmanator != null)
                 {
                     //this.Object.ParticleText("My willpower penalty/bonus are " + this.Object.Statistics["Willpower"].Penalty + "/" + this.Object.Statistics["Willpower"].Bonus);
                     if (this.Feeling < 0)

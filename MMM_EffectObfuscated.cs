@@ -28,6 +28,11 @@ namespace XRL.World.Parts.Effects
         {
             return "Creatures with mind ignore you. (" + this.Duration.ToString() + " turns left).";
         }
+		
+		public bool IsTargetViable(GameObject c)
+		{
+			return c.HasPart("Brain") && c.HasPart("Combat") && !c.HasPart("MentalShield") && !c.HasPart("Clairvoyance");			
+		}
 
         public override bool Apply(GameObject Object)
         {
@@ -56,7 +61,7 @@ namespace XRL.World.Parts.Effects
             Physics part = this.HiddenObject.GetPart("Physics") as Physics;
             if (part != null && part.CurrentCell != null)
             {
-                Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, 40, "Combat");
+                Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, 80, "Combat");
             }
 
             if (!this.HiddenObject.IsPlayer())
@@ -80,7 +85,7 @@ namespace XRL.World.Parts.Effects
             Object.RegisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
             Object.RegisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
             //Object.RegisterEffectEvent((Effect)this, "BeginAttack");
-            Object.RegisterEffectEvent((Effect)this, "PlayerBeginConversation");
+            Object.RegisterEffectEvent((Effect)this, "BeginConversation");
             Object.RegisterEffectEvent((Effect)this, "BeginTakeAction");
             Object.RegisterEffectEvent((Effect)this, "MeleeAttackWithWeapon");
             Object.RegisterEffectEvent((Effect)this, "FiredMissileWeapon");
@@ -93,7 +98,7 @@ namespace XRL.World.Parts.Effects
             Object.UnregisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
             Object.UnregisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
             //Object.UnregisterEffectEvent((Effect)this, "BeginAttack");
-            Object.UnregisterEffectEvent((Effect)this, "PlayerBeginConversation");
+            Object.UnregisterEffectEvent((Effect)this, "BeginConversation");
             Object.UnregisterEffectEvent((Effect)this, "BeginTakeAction");
             Object.UnregisterEffectEvent((Effect)this, "MeleeAttackWithWeapon");
             Object.UnregisterEffectEvent((Effect)this, "FiredMissileWeapon");
@@ -130,7 +135,7 @@ namespace XRL.World.Parts.Effects
                  }
                  return true;
              }*/
-            if (E.ID == "PlayerBeginConversation")
+            if (E.ID == "BeginConversation")
             {
                 this.Duration = 0;
                 this.Object.UseEnergy(1000);
@@ -146,11 +151,11 @@ namespace XRL.World.Parts.Effects
                     List<GameObject> Creatures = new List<GameObject>(10);
                     if (part != null && part.CurrentCell != null)
                     {
-                        Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, 40, "Combat");
+                        Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, 80, "Combat");
                     }
                     foreach (GameObject c in Creatures)
                     {
-                        if (c.HasPart("Brain") && c.HasPart("Combat") && !c.HasPart("MentalShield") && !c.HasPart("Clairvoyance"))
+                        if (IsTargetViable(c))
                         {
                             if (c != this.HiddenObject && !c.HasEffect("MMM_EffectIgnoreObject"))
                             {

@@ -614,7 +614,9 @@ namespace XRL.World.Parts.Mutation
                     return true;
                 List<GameObject> objectsInCell = new List<GameObject>();
                 objectsInCell = cell.GetObjectsInCell();
-                objectsInCell.Sort((IComparer<XRL.World.GameObject>)new SortGORenderLayer());
+				
+				//Stopped working after some update, probably not necessary anyway and I can't seem to find any replacement
+                //objectsInCell.Sort((IComparer<XRL.World.GameObject>)new SortGORenderLayer());
                 string str = string.Empty;
                 Dictionary<char, XRL.World.GameObject> objectsToPickUp = new Dictionary<char, XRL.World.GameObject>();
 
@@ -630,11 +632,14 @@ namespace XRL.World.Parts.Mutation
 
                 bool requestInterfaceExit = false;
                 if (objectsToPickUp.Count == 0)
+				{
                     if (this.ParentObject.IsPlayer())
                         Popup.Show("There's nothing to take.", true);
-                    else if (objectsToPickUp.Count > 0)
-                        PickItem.ShowPicker(new List<XRL.World.GameObject>((IEnumerable<XRL.World.GameObject>)objectsToPickUp.Values), ref requestInterfaceExit, (string)null, PickItem.PickItemDialogStyle.GetItemDialog, this.ParentObject);
-
+				}				
+				else
+				{
+					PickItem.ShowPicker(new List<XRL.World.GameObject>((IEnumerable<XRL.World.GameObject>)objectsToPickUp.Values), ref requestInterfaceExit, (string)null, PickItem.PickItemDialogStyle.GetItemDialog, this.ParentObject);						
+				}
                 this.ParentObject.UseEnergy(1000, "Mental");
                 return true;
             }

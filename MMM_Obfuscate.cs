@@ -30,7 +30,7 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetDescription()
         {
-            return "You make creatures with mind ignore your presence.";
+            return "Creatures with mind ignore your presence.";
         }
 
         public override string GetLevelText(int Level)
@@ -49,13 +49,17 @@ namespace XRL.World.Parts.Mutation
                     this.ParentObject.ApplyEffect((Effect)new MMM_EffectObfuscated(20 + this.Level * 3, this.ParentObject));
                     this.ParentObject.UseEnergy(1000, "Mental");
                     this.ObfuscateActivatedAbility.Cooldown = 1110;
+                    this.UnObfuscateActivatedAbility.Enabled = true;
                 }
                 return true;
             }
             if (E.ID == "CommandUnObfuscate")
             {
-                if (this.ParentObject.HasEffect("MMM_EffectObfuscated"))                
+                if (this.ParentObject.HasEffect("MMM_EffectObfuscated"))
+                {
                     this.ParentObject.RemoveEffect("MMM_EffectObfuscated");
+                    this.UnObfuscateActivatedAbility.Enabled = false;
+                }
                 return true;
             }
             return base.FireEvent(E);
@@ -75,6 +79,7 @@ namespace XRL.World.Parts.Mutation
                 this.ObfuscateActivatedAbility = part.AbilityByGuid[this.ObfuscateActivatedAbilityID];
                 this.UnObfuscateActivatedAbilityID = part.AddAbility("Disable obfuscation", "CommandUnObfuscate", "Mental Mutation");
                 this.UnObfuscateActivatedAbility = part.AbilityByGuid[this.UnObfuscateActivatedAbilityID];
+                this.UnObfuscateActivatedAbility.Enabled = true;
             }
             this.ChangeLevel(Level);
             return base.Mutate(GO, Level);

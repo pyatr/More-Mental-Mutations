@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <mutations>
  <category Name="Mental" Stat="Ego">
-    <mutation Name="Dynakinesis" Cost="4" MaxSelected="1" Class="MMM_Dynakineticism" BearerDescription="" Exclusions=""></mutation>
-    <mutation Name="Obfuscate" Cost="4" MaxSelected="1" Class="MMM_Obfuscate" BearerDescription="" Exclusions=""></mutation>
+    <mutation Name="Dynakinesis" Cost="4" MaxSelected="1" Class="MMM_Dynakineticism" BearerDescription="" Exclusions="" Tile="Mutations/dynakinesis.png"></mutation>
+    <mutation Name="Obfuscate" Cost="4" MaxSelected="1" Class="MMM_Obfuscate" BearerDescription="" Exclusions="" Tile="Mutations/obfuscate.png"></mutation>
 <!--<mutation Name="Obtenebration" Cost="5" MaxSelected="1" Class="MMM_Obtenebration" BearerDescription="" Exclusions=""></mutation>-->
-    <mutation Name="Telekinesis" Cost="4" MaxSelected="1" Class="MMM_Telekinesis" BearerDescription="" Exclusions=""></mutation>
-    <mutation Name="Gravity Field" Cost="3" MaxSelected="1" Class="MMM_GravityField" BearerDescription="" Exclusions=""></mutation>
-    <mutation Name="Presence" Cost="4" MaxSelected="1" Class="MMM_Presence" BearerDescription="" Exclusions=""></mutation>
-    <mutation Name="Levitation" Cost="3" MaxSelected="1" Class="MMM_Levitation" BearerDescription="" Exclusions="Wings"></mutation>
+    <mutation Name="Telekinesis" Cost="4" MaxSelected="1" Class="MMM_Telekinesis" BearerDescription="" Exclusions="" Tile="Mutations/telekinesis.png"></mutation>
+    <mutation Name="Gravity Field" Cost="3" MaxSelected="1" Class="MMM_GravityField" BearerDescription="" Exclusions="" Tile="Mutations/grafield.png"></mutation>
+    <mutation Name="Presence" Cost="4" MaxSelected="1" Class="MMM_Presence" BearerDescription="" Exclusions="" Tile="Mutations/presence.png"></mutation>
+    <mutation Name="Levitation" Cost="3" MaxSelected="1" Class="MMM_Levitation" BearerDescription="" Exclusions="Wings" Tile="Mutations/levitation.png"></mutation>
 <!--<mutation Name="Hive Mind" Cost="6" MaxSelected="1" Class="MMM_HiveMind" BearerDescription="" Exclusions=""></mutation>-->
 <!--<mutation Name="Summoning" Cost="5" MaxSelected="1" Class="MMM_Summoning" BearerDescription="" Exclusions=""></mutation>-->
 <!--<mutation Name="Hypnotize" Cost="2" MaxSelected="1" Class="MMM_Hypnotising" BearerDescription="" Exclusions=""></mutation>-->

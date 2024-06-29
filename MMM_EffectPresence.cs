@@ -74,7 +74,7 @@ namespace XRL.World.Parts.Effects
         {
             if (E.ID == "EndTurn")
             {
-                if (GameObject.validate(ref this.PresenceEmanator))
+                if (GameObject.validate(ref this.PresenceEmanator) && this.PresenceEmanator != null)
                 {
                     List<GameObject> Creatures = new List<GameObject>();
                     Physics part = this.PresenceEmanator.GetPart("Physics") as Physics;

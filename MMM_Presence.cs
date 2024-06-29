@@ -89,6 +89,9 @@ namespace XRL.World.Parts.Mutation
             {
                 this.PresenceActivatedAbilityID = part.AddAbility("Presence", "CommandPresence", "Mental Mutation");
                 this.PresenceActivatedAbility = part.AbilityByGuid[this.PresenceActivatedAbilityID];
+                // this.PresenceActivatedAbility.UITileDefault.Tile = "Mutations/presence.png";
+                // this.PresenceActivatedAbility.UITileDefault.TileColor = "b";
+                // this.PresenceActivatedAbility.UITileDefault.DetailColor = 'B';
                 this.UnPresenceActivatedAbilityID = part.AddAbility("Cease presence", "CommandUnPresence", "Mental Mutation");
                 this.UnPresenceActivatedAbility = part.AbilityByGuid[this.UnPresenceActivatedAbilityID];
             }
