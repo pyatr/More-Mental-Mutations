@@ -14,12 +14,14 @@ namespace MoreMentalMutations.Effects
         {
             ObjectToIgnore = Object;
             Duration = _Duration;
-            DisplayName = "";// &Cignoring" + ObjectToIgnore.DisplayName + " located at " + ObjectToIgnore.Physics.CurrentCell.Pos2D.ToString();
+            DisplayName = "";
+            // DisplayName = "&Cignoring" + ObjectToIgnore.DisplayName + " located at " + ObjectToIgnore.Physics.CurrentCell.Pos2D.ToString();
         }
 
         public override string GetDetails()
         {
-            return "";// "Someone's hiding from your attention.";
+            return "";
+            // return "Someone's hiding from your attention.";
         }
 
         public override bool Apply(GameObject Object)
@@ -37,12 +39,12 @@ namespace MoreMentalMutations.Effects
         public void ApplyEffect()
         {
             GameObject.Validate(ref ObjectToIgnore);
+
             if (Object.Brain.PartyLeader != ObjectToIgnore)
             {
                 Object.Brain.Target = null;
-                Object.Brain.Goals?.Clear();
-
                 Object.Brain.AddOpinion<OpinionObfuscate>(ObjectToIgnore, 1);
+                Object.Brain.Forgive(ObjectToIgnore);
             }
         }
 

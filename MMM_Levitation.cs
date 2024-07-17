@@ -51,6 +51,8 @@ namespace XRL.World.Parts.Mutation
         public Guid _FlightActivatedAbilityID = Guid.Empty;
         public bool _FlightFlying;
         public int Cooldown = 40;
+        public int BaseDuration = 20;
+        public int DurationPerLevel = 3;
 
         public override IPart DeepCopy(GameObject Parent)
         {
@@ -100,8 +102,14 @@ namespace XRL.World.Parts.Mutation
         public override string GetLevelText(int Level)
         {
             StringBuilder stringBuilder = Event.NewStringBuilder();
-            stringBuilder.Append($"You may levitate outside and underground for {Duration} turns (you cannot be hit in melee by grounded creatures while levitating). You may not levitate while travelling.\n Cooldown: {Cooldown}\n");
+            stringBuilder.Append($"You may levitate outside and underground for {GetDuration()} turns (you cannot be hit in melee by grounded creatures while levitating). You may not levitate while travelling.\n Cooldown: {Cooldown}\n");
+
             return stringBuilder.ToString();
+        }
+
+        public int GetDuration()
+        {
+            return Level * DurationPerLevel + BaseDuration;
         }
 
         bool StartFlyingAnywhere(GameObject Source, GameObject Object, IFlightSource FS)
@@ -116,7 +124,7 @@ namespace XRL.World.Parts.Mutation
                     MessageQueue.AddPlayerMessage("You begin levitating!", 'g');
                 else if (Object.IsVisible())
                     MessageQueue.AddPlayerMessage(Object.The + Object.ShortDisplayName + Object.GetVerb("begin", true, false) + " levitating.");
-                Object.ApplyEffect(new MMM_EffectLevitation(Duration, ParentObject));
+                Object.ApplyEffect(new MMM_EffectLevitation(GetDuration(), ParentObject));
                 Object.MovementModeChanged("Flying", false);
             }
             else if (Object.IsPlayer())
