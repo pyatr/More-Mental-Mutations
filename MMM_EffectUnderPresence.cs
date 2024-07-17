@@ -19,14 +19,16 @@ namespace MoreMentalMutations.Effects
 
         public MMM_EffectUnderPresence()
         {
-            DisplayName = "&OUnder someone's presence";
+            if (Object.IsPlayer())
+            {
+                DisplayName = "&OUnder someones presence";
+            }
         }
 
         public MMM_EffectUnderPresence(GameObject _PresenceEmanator, int _Strength, int _Duration, int _ChanceToFlee, bool _HostilesNearby) : this()
         {
             PresenceEmanator = _PresenceEmanator;
             //this.DisplayName = "&OUnder " + _PresenceEmanator.DisplayName + "'s presence";
-            DisplayName = "&OUnder someone's presence";
             Strength = _Strength;
             Duration = _Duration;
             ChanceToFlee = _ChanceToFlee;
@@ -54,10 +56,11 @@ namespace MoreMentalMutations.Effects
         {
             if (!GameObject.Validate(ref PresenceEmanator))
             {
-
+                return;
             }
 
             Feeling = Object.Brain.GetFeeling(PresenceEmanator);
+
             if (Feeling > 0)
             {
                 if (HostilesNearby)
@@ -122,7 +125,6 @@ namespace MoreMentalMutations.Effects
                         if (Stat.Random(1, 100) < ChanceToFlee)
                         {
                             PerformMentalAttack(new Mental.Attack(Terrified.OfAttacker), PresenceEmanator, Object, PresenceEmanator, "Get scared by presence", "1d8", 1, Stat.Roll("3d3"));
-                            //Fear.ApplyFearToObject("1d8", Stat.Roll("3d3"), this.Object, this.PresenceEmanator, this.PresenceEmanator);
                             //this.Object.ParticleText("&g*fleeing!*");
                         }
                     }
@@ -145,6 +147,7 @@ namespace MoreMentalMutations.Effects
             {
                 ApplyEffect();
             }
+
             return base.FireEvent(E);
         }
     }

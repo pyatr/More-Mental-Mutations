@@ -13,7 +13,7 @@ namespace XRL.World.Parts.Mutation
     {
         public Guid DynakineticismActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry DynakineticismActivatedAbility;
-        public int Cooldown = 25;
+        public int Cooldown = 30;
 
         public MMM_Dynakineticism()
         {

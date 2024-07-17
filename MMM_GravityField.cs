@@ -8,6 +8,15 @@ namespace XRL.World.Parts.Mutation
     {
         public Guid GravityFieldActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry GravityFieldActivatedAbility;
+        public int EnemyMissilePenaltyPerLevel = 2;
+        public int AVBonusPerLevel = 2;
+        public int DVBonusPerLevel = 3;
+        public int BaseAVBonus = 2;
+        public int BaseDVBonus = 1;
+        public int BaseDuration = 20;
+        public int BaseCooldown = 103;
+        public int DurationPerLevel = 2;
+        public int CooldownDecreasePerLevel = 3;
 
         public MMM_GravityField()
         {
@@ -29,28 +38,30 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetLevelText(int Level)
         {
-            return (-Level * 2).ToString()
+            return (-Level * EnemyMissilePenaltyPerLevel).ToString()
                 + " to enemy missile weapon accuracy, "
-                + (Level / 2 + 2).ToString()
+                + (Level / AVBonusPerLevel + BaseAVBonus).ToString()
                 + " to your AV, "
-                + (this.Level / 3 + 1).ToString()
+                + (Level / DVBonusPerLevel + BaseDVBonus).ToString()
                 + " to your DV.\n"
                 + "Duration: "
-                + (20 + Level * 2).ToString()
+                + (BaseDuration + Level * DurationPerLevel).ToString()
                 + "\nCooldown: "
-                + (123 - Level * 3).ToString();
+                + (BaseCooldown - Level * CooldownDecreasePerLevel).ToString();
         }
 
         public override bool FireEvent(Event E)
         {
             if (E.ID == "CommandGravityField")
             {
-                if (!ParentObject.HasEffect("EffectGravityField"))
+                if (ParentObject.HasEffect("EffectGravityField"))
                 {
-                    ParentObject.ApplyEffect(new MMM_EffectGravityField(Level, 20 + Level * 2));
-                    ParentObject.UseEnergy(1000);
-                    GravityFieldActivatedAbility.Cooldown = 1240 - 30 * Level;
+                    return true;
                 }
+
+                ParentObject.ApplyEffect(new MMM_EffectGravityField(Level, BaseDuration + Level * DurationPerLevel));
+                ParentObject.UseEnergy(1000);
+                GravityFieldActivatedAbility.Cooldown = BaseCooldown * 10 - CooldownDecreasePerLevel * 10 * Level;
 
                 return true;
             }
