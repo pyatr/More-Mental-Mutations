@@ -1,8 +1,6 @@
 using System;
-using XRL;
-using XRL.World;
 
-namespace MoreMentalMutations.Parts
+namespace XRL.World.Parts
 {
     [Serializable]
     public class MMM_NoDominate : IPart
