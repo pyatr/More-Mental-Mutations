@@ -10,11 +10,15 @@ namespace MoreMentalMutations.Effects
     {
         public GameObject ObjectToIgnore;
 
-        public MMM_EffectIgnoreObject(GameObject Object, int _Duration)
+        public MMM_EffectIgnoreObject()
+        {
+            DisplayName = "";
+        }
+
+        public MMM_EffectIgnoreObject(GameObject Object, int _Duration) : this()
         {
             ObjectToIgnore = Object;
             Duration = _Duration;
-            DisplayName = "";
             // DisplayName = "&Cignoring" + ObjectToIgnore.DisplayName + " located at " + ObjectToIgnore.Physics.CurrentCell.Pos2D.ToString();
         }
 
@@ -86,7 +90,7 @@ namespace MoreMentalMutations.Effects
                         ApplyEffect();
                     }
 
-                    if (ObjectToIgnore.HasEffect<EffectObfuscated>())
+                    if (ObjectToIgnore.HasEffect<MMM_EffectObfuscated>())
                     {
                         if (Object.Brain.Target == ObjectToIgnore)
                         {
@@ -98,7 +102,7 @@ namespace MoreMentalMutations.Effects
 
             if (E.ID == "EndTurn")
             {
-                if (ObjectToIgnore.HasEffect<EffectObfuscated>() && Duration > 0)
+                if (ObjectToIgnore.HasEffect<MMM_EffectObfuscated>() && Duration > 0)
                 {
                     --Duration;
                 }

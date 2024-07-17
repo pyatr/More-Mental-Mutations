@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using XRL;
+using XRL.Messages;
 using XRL.World;
 using XRL.World.Parts;
 
@@ -15,9 +16,13 @@ namespace MoreMentalMutations.Effects
         public bool HostilesNearby = false;
         public int Radius = 7;
 
-        public MMM_EffectPresence(int _Duration, int _Strength, GameObject _PresenceEmanator, int _ChanceToFlee, bool _HostilesNearby)
+        public MMM_EffectPresence()
         {
             DisplayName = "&oPresence";
+        }
+
+        public MMM_EffectPresence(int _Duration, int _Strength, GameObject _PresenceEmanator, int _ChanceToFlee, bool _HostilesNearby) : this()
+        {
             Duration = _Duration;
             Strength = _Strength;
             PresenceEmanator = _PresenceEmanator;
@@ -101,7 +106,7 @@ namespace MoreMentalMutations.Effects
                     Duration = 0;
                 }
             }
-            
+
             if (E.ID == "BeforeDeepCopyWithoutEffects")
             {
                 GameObject.Validate(ref PresenceEmanator);

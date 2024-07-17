@@ -8,12 +8,16 @@ using XRL;
 namespace MoreMentalMutations.Effects
 {
     [Serializable]
-    public class EffectObfuscated : Effect
+    public class MMM_EffectObfuscated : Effect
     {
         public GameObject HiddenObject;
-        public new string DisplayName = "&cobfuscated";
 
-        public EffectObfuscated(int _Duration, GameObject _HiddenObject)
+        public MMM_EffectObfuscated()
+        {
+            DisplayName = "&cobfuscated";
+        }
+
+        public MMM_EffectObfuscated(int _Duration, GameObject _HiddenObject) : this()
         {
             Duration = _Duration;
             HiddenObject = _HiddenObject;
@@ -69,7 +73,7 @@ namespace MoreMentalMutations.Effects
 
             foreach (GameObject GO in Creatures)
             {
-                if (GO.HasEffect("EffectIgnoreObject"))
+                if (GO.HasEffect<MMM_EffectIgnoreObject>())
                 {
                     GO.RemoveEffect<MMM_EffectIgnoreObject>();
                 }
@@ -113,7 +117,7 @@ namespace MoreMentalMutations.Effects
                      return true;
                  GameObject Defender = E.GetParameter("Defender") as GameObject;
                  GameObject Weapon = E.GetParameter("Weapon") as GameObject;
-                 if (Defender.HasEffect("EffectIgnoreObject"))
+                 if (Defender.HasEffect<MMM_EffectIgnoreObject>())
                  {
                      //this.Object.ParticleText("Defend yourself, " + Defender.DisplayName);
                      Event E1 = Event.New("MeleeAttackWithWeapon", 0, 0, 0);
@@ -131,7 +135,11 @@ namespace MoreMentalMutations.Effects
             if (E.ID == "BeginConversation")
             {
                 Duration = 0;
-                Object.UseEnergy(1000);
+
+                if (GameObject.Validate(ref HiddenObject))
+                {
+                    HiddenObject.UseEnergy(1000);
+                }
 
                 return false;
             }
@@ -153,14 +161,21 @@ namespace MoreMentalMutations.Effects
                         Creatures = hiddenObjectPhysics.CurrentCell.ParentZone.FastSquareSearch(hiddenObjectPhysics.CurrentCell.X, hiddenObjectPhysics.CurrentCell.Y, 80, "Combat");
                     }
 
-                    foreach (GameObject c in Creatures)
+                    foreach (GameObject creature in Creatures)
                     {
-                        if (IsTargetViable(c))
+                        if (!IsTargetViable(creature))
                         {
-                            if (c != HiddenObject && !c.HasEffect("EffectIgnoreObject"))
-                            {
-                                c.ApplyEffect(new MMM_EffectIgnoreObject(HiddenObject, Duration));
-                            }
+                            continue;
+                        }
+
+                        MMM_EffectIgnoreObject ignoreOnObject = creature.GetEffect<MMM_EffectIgnoreObject>();
+
+                        //If creature is not object itself, if it has no ignore effect or its ignore effect is from other creature
+                        if (creature != HiddenObject &&
+                           (ignoreOnObject == null ||
+                           (ignoreOnObject != null && ignoreOnObject.ObjectToIgnore != HiddenObject)))
+                        {
+                            creature.ApplyEffect(new MMM_EffectIgnoreObject(HiddenObject, Duration));
                         }
                     }
                 }

@@ -9,9 +9,13 @@ namespace MoreMentalMutations.Effects
     public class MMM_EffectLevitation : Effect
     {
         public GameObject Levitator;
-        public new string DisplayName = "&clevitation";
 
-        public MMM_EffectLevitation(int _Duration, GameObject parent)
+        public MMM_EffectLevitation()
+        {
+            DisplayName = "&clevitation";
+        }
+
+        public MMM_EffectLevitation(int _Duration, GameObject parent) : this()
         {
             Duration = _Duration;
             Levitator = parent;

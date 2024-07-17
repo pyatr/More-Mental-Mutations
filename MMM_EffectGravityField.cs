@@ -9,9 +9,14 @@ namespace MoreMentalMutations.Effects
     {
         public int Level = 1;
 
-        public MMM_EffectGravityField(int MutationLevel, int _Duration)
+        //Required for deseralization!
+        public MMM_EffectGravityField()
         {
             DisplayName = "&gGravity field";
+        }
+
+        public MMM_EffectGravityField(int MutationLevel, int _Duration) : this()
+        {
             Duration = _Duration;
             Level = MutationLevel;
         }

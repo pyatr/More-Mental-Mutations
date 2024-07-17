@@ -12,7 +12,12 @@ namespace MoreMentalMutations.Effects
         GameObject Seer;
         MMM_Obtenebration Source;
 
-        public MMM_EffectHighlightCreature(GameObject _Seer, MMM_Obtenebration _Source)
+        public MMM_EffectHighlightCreature()
+        {
+
+        }
+
+        public MMM_EffectHighlightCreature(GameObject _Seer, MMM_Obtenebration _Source) : this()
         {
             Seer = _Seer;
             Source = _Source;

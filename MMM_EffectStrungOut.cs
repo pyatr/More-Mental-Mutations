@@ -7,18 +7,15 @@ namespace MoreMentalMutations.Effects
     [Serializable]
     public class MMM_EffectStrungOut : Effect
     {
-        private int Severity;
+        public int Severity;
 
         public MMM_EffectStrungOut()
         {
             DisplayName = "&rStrung out";
-            Severity = 0;
         }
-        
-        public MMM_EffectStrungOut(int _Severity)
-          : this()
+
+        public MMM_EffectStrungOut(int _Severity) : this()
         {
-            DisplayName = "&rStrung out";
             Duration = 1;
             Severity = _Severity;
         }
