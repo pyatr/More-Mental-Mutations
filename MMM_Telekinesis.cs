@@ -86,159 +86,185 @@ namespace XRL.World.Parts.Mutation
         {
             if (E.ID == "CommandTelekinesisThrowWeapon")
             {
-                string direction = ".";
-                direction = PickDirectionS();
+                GameObject thrownWeaponObject = null;
+                GameObject possibleTarget = null;
+                Body body = ParentObject.Body;
 
-                if (direction != "." && !string.IsNullOrEmpty(direction))
+                foreach (BodyPart bodyPart in body.GetParts())
                 {
-                    GameObject thrownWeapon = null;
-                    Body body = ParentObject.Body;
-
-                    foreach (BodyPart bodyPart in body.GetParts())
+                    if (bodyPart.Type != "Hand" || bodyPart.Equipped == null || bodyPart.Equipped != null && bodyPart.Equipped.GetIntProperty("Natural", 0) != 0)
                     {
-                        if (bodyPart.Type == "Hand")
-                        {
-                            if (bodyPart.Equipped != null && bodyPart.Equipped.GetIntProperty("Natural", 0) == 0)
-                            {
-                                thrownWeapon = bodyPart.Equipped;
-                                ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", bodyPart));
-                                thrownWeapon.Physics.InInventory.FireEvent(Event.New("CommandDropObject", "Object", thrownWeapon));
-                                break;
-                            }
-                        }
+                        continue;
                     }
 
-                    if (thrownWeapon != null)
-                    {
-                        lastThrownWeapon = thrownWeapon;
-                        int Damage2 = 0;
+                    thrownWeaponObject = bodyPart.Equipped;
+                    ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", bodyPart));
+                    // thrownWeaponObject.Physics.InInventory.FireEvent(Event.New("CommandDropObject", "Object", thrownWeaponObject));
+                    InventoryActionEvent.Check(ParentObject, ParentObject, thrownWeaponObject, "CommandDropObject");
 
-                        string RealTelekinesisDamage = TelekinesisDamage;
-                        int HitStrength = TelekinesisStrength;
-                        int i;
-                        string message = string.Empty;
-
-                        if (ParentObject.IsPlayer())
-                            message += "You ";
-                        else
-                            message += ParentObject.DisplayName;
-
-                        message += " throw";
-
-                        if (ParentObject.IsPlayer())
-                            message += " ";
-                        else
-                            message += "s ";
-
-                        message += thrownWeapon.the + thrownWeapon.DisplayName;
-
-                        message += " with ";
-                        if (ParentObject.IsPlayer())
-                            message += "your";
-                        else
-                            message += thrownWeapon.its;
-                        message += " telekinetic power!";
-
-                        MessageQueue.AddPlayerMessage(message);
-                        GameObject PossibleTarget = null;
-
-                        for (i = 0; i < TelekinesisRange + THROW_RANGE_MOD; i++)
-                        {
-                            List<GameObject> ObjectsSomewhereElse = thrownWeapon.Physics.CurrentCell.GetCellFromDirection(direction, true).GetObjectsInCell();
-
-                            foreach (GameObject GO2 in ObjectsSomewhereElse)
-                            {
-                                if (GO2.Physics.Solid)
-                                {
-                                    PossibleTarget = GO2;
-                                    i = TelekinesisRange;
-                                    break;
-                                }
-                            }
-                            foreach (GameObject GO3 in ObjectsSomewhereElse)
-                            {
-                                if (GO3.HasPart("Combat"))
-                                {
-                                    PossibleTarget = GO3;
-                                    i = TelekinesisRange;
-                                    break;
-                                }
-                            }
-
-                            thrownWeapon.DirectMoveTo(thrownWeapon.Physics.CurrentCell.GetCellFromDirection(direction, true));
-                        }
-
-                        if (PossibleTarget != null)
-                        {
-                            int SolidObjectAV = Stats.GetCombatAV(PossibleTarget);
-                            RealTelekinesisDamage = thrownWeapon.GetPart<MeleeWeapon>().BaseDamage;
-                            if (HitStrength > thrownWeapon.GetPart<MeleeWeapon>().MaxStrengthBonus)
-                                HitStrength = thrownWeapon.GetPart<MeleeWeapon>().MaxStrengthBonus;
-                            //PossibleTarget.Physics.CurrentCell.AddObject(thrownWeapon);
-
-                            for (i = 0; i < HitStrength - SolidObjectAV; i++)
-                            {
-                                Damage2 += Stat.Roll(RealTelekinesisDamage);
-                            }
-
-                            if (Damage2 > 0 && PossibleTarget.HasPart("Combat"))
-                            {
-                                PossibleTarget.BloodsplatterBurst(true, (float)(Stat.Random(0, 359) / 360.0 * 3.14159274101257 * 2.0), 45);
-                                if (thrownWeapon.GetPart<MeleeWeapon>().Skill == "Cudgel")
-                                    PossibleTarget.ApplyEffect(new Stun(Stat.Random(2, 3), 25 + Level));
-                            }
-                            Damage ddamage2 = new Damage(Damage2);
-                            ddamage2.AddAttribute("Physical");
-                            message = "";
-                            Event E2 = Event.New("TakeDamage", 0, 0, 0);
-                            E2.AddParameter("Damage", ddamage2);
-                            E2.AddParameter("Owner", ParentObject);
-                            E2.AddParameter("Attacker", ParentObject);
-                            if (!PossibleTarget.FireEvent(E2) || ddamage2.Amount == 0)
-                            {
-                                if (PossibleTarget.IsPlayer())
-                                    message += "You are ";
-                                else
-                                    message += PossibleTarget.the + PossibleTarget.DisplayName + PossibleTarget.Is;
-
-                                message += " not damaged by ";
-
-                                if (ParentObject.IsPlayer())
-                                    message += " your ";
-                                else
-                                    message += PossibleTarget.the + PossibleTarget.DisplayName + "'s";
-                                message += " telekinesis.";
-                                MessageQueue.AddPlayerMessage(message);
-                            }
-                            else
-                            {
-                                if (PossibleTarget.IsPlayer())
-                                    message += "You take ";
-                                else
-                                    message += PossibleTarget.the + PossibleTarget.DisplayName + " takes ";
-
-                                message += ddamage2.Amount.ToString();
-                                message += " damage from ";
-                                message += thrownWeapon.DisplayName;
-                                if (thrownWeapon.GetPart<MeleeWeapon>().Skill == "LongBlades" || thrownWeapon.GetPart<MeleeWeapon>().Skill == "ShortBlades" || thrownWeapon.GetPart<MeleeWeapon>().Skill == "Axe")
-                                    message += " piercing into ";
-                                else
-                                    message += " slamming into ";
-                                message += PossibleTarget.them + ".";
-                                MessageQueue.AddPlayerMessage(message);
-                            }
-                        }
-                        TelekinesisLaunchWeaponActivatedAbility.Cooldown = BasicCooldown * 10 + 10;
-                    }
-                    ParentObject.UseEnergy(1000, "Mental");
+                    break;
                 }
+
+                if (thrownWeaponObject == null)
+                {
+                    if (ParentObject.IsPlayer())
+                    {
+                        MessageQueue.AddPlayerMessage("You don't have a throwable weapon equipped.");
+                    }
+
+                    return true;
+                }
+
+                string direction = PickDirectionS();
+
+                if (direction == "." || string.IsNullOrEmpty(direction))
+                {
+                    return true;
+                }
+
+                MeleeWeapon thrownWeapon = thrownWeaponObject.GetPart<MeleeWeapon>();
+
+                lastThrownWeapon = thrownWeaponObject;
+                int Damage2 = 0;
+
+                string RealTelekinesisDamage = thrownWeapon.BaseDamage;
+                int HitStrength = TelekinesisStrength;
+                int i;
+                string message = string.Empty;
+
+                if (ParentObject.IsPlayer())
+                    message += "You";
+                else
+                    message += ParentObject.DisplayName;
+
+                message += " throw";
+
+                if (ParentObject.IsPlayer())
+                    message += " ";
+                else
+                    message += "s ";
+
+                message += thrownWeaponObject.the + thrownWeaponObject.DisplayName;
+
+                message += " with ";
+                if (ParentObject.IsPlayer())
+                    message += "your";
+                else
+                    message += thrownWeaponObject.its;
+                message += " telekinetic power!";
+
+                MessageQueue.AddPlayerMessage(message);
+
+                for (i = 0; i < TelekinesisRange + THROW_RANGE_MOD; i++)
+                {
+                    List<GameObject> ObjectsSomewhereElse = thrownWeaponObject.Physics.CurrentCell.GetCellFromDirection(direction, true).GetObjectsInCell();
+
+                    foreach (GameObject GO2 in ObjectsSomewhereElse)
+                    {
+                        if (GO2.Physics.Solid)
+                        {
+                            possibleTarget = GO2;
+                            i = TelekinesisRange;
+                            break;
+                        }
+                    }
+
+                    foreach (GameObject GO3 in ObjectsSomewhereElse)
+                    {
+                        if (GO3.HasPart("Combat"))
+                        {
+                            possibleTarget = GO3;
+                            i = TelekinesisRange;
+                            break;
+                        }
+                    }
+
+                    thrownWeaponObject.DirectMoveTo(thrownWeaponObject.Physics.CurrentCell.GetCellFromDirection(direction, true));
+                }
+
+                if (possibleTarget == null)
+                {
+                    return true;
+                }
+
+                int SolidObjectAV = Stats.GetCombatAV(possibleTarget);
+
+                if (HitStrength > thrownWeapon.MaxStrengthBonus)
+                {
+                    HitStrength = thrownWeapon.MaxStrengthBonus;
+                }
+
+                for (i = 0; i < HitStrength - SolidObjectAV; i++)
+                {
+                    Damage2 += Stat.Roll(RealTelekinesisDamage);
+                }
+
+                if (Damage2 > 0 && possibleTarget.HasPart("Combat"))
+                {
+                    possibleTarget.BloodsplatterBurst(true, (float)(Stat.Random(0, 359) / 360.0 * 3.14159274101257 * 2.0), 45);
+                    if (thrownWeaponObject.GetPart<MeleeWeapon>().Skill == "Cudgel")
+                        possibleTarget.ApplyEffect(new Stun(Stat.Random(2, 3), 25 + Level));
+                }
+
+                Damage ddamage2 = new Damage(Damage2);
+                ddamage2.AddAttribute("Physical");
+                message = "";
+                Event E2 = Event.New("TakeDamage", 0, 0, 0);
+                E2.AddParameter("Damage", ddamage2);
+                E2.AddParameter("Owner", ParentObject);
+                E2.AddParameter("Attacker", ParentObject);
+                if (!possibleTarget.FireEvent(E2) || ddamage2.Amount == 0)
+                {
+                    if (possibleTarget.IsPlayer())
+                        message += "You are ";
+                    else
+                        message += possibleTarget.the + possibleTarget.DisplayName + possibleTarget.Is;
+
+                    message += " not damaged by ";
+
+                    if (ParentObject.IsPlayer())
+                        message += "your";
+                    else
+                        message += possibleTarget.the + possibleTarget.DisplayName + "'s";
+
+                    message += " telekinesis.";
+
+                    MessageQueue.AddPlayerMessage(message);
+                }
+                else
+                {
+                    if (possibleTarget.IsPlayer())
+                        message += "You take ";
+                    else
+                        message += possibleTarget.the + possibleTarget.DisplayName + " takes ";
+
+                    message += ddamage2.Amount.ToString();
+                    message += " damage from ";
+                    message += thrownWeaponObject.DisplayName;
+
+                    if (thrownWeapon.Skill == "LongBlades" || thrownWeapon.Skill == "ShortBlades" || thrownWeapon.Skill == "Axe")
+                        message += " piercing into ";
+                    else
+                        message += " slamming into ";
+
+                    message += possibleTarget.them + ".";
+
+                    MessageQueue.AddPlayerMessage(message);
+                }
+
+                TelekinesisLaunchWeaponActivatedAbility.Cooldown = BasicCooldown * 10 + 10;
+                ParentObject.UseEnergy(1000, "Mental");
+
                 return true;
             }
             if (E.ID == "CommandTelekinesisThrow")
             {
                 Cell C = PickDestinationCell(TelekinesisRange, AllowVis.OnlyVisible, true);
+
                 if (C == null)
+                {
                     return false;
+                }
 
                 if (C.DistanceTo(ParentObject) > TelekinesisRange)
                 {
@@ -367,9 +393,11 @@ namespace XRL.World.Parts.Mutation
                             message += " damage from slamming into floor";
                             MessageQueue.AddPlayerMessage(message + ".");
                         }
+
                         TelekinesisGentlyPickupAndPlaceCreatureActivatedAbility.Cooldown = BasicCooldown * 10 + 10;
                         TelekinesisThrowActivatedAbility.Cooldown = BasicCooldown * 10 + 10;
                         ParentObject.UseEnergy(1000, "Mental");
+
                         return true;
                     }
 
@@ -531,9 +559,11 @@ namespace XRL.World.Parts.Mutation
                             MessageQueue.AddPlayerMessage(message);
                         }
                     }
+
                     TelekinesisGentlyPickupAndPlaceCreatureActivatedAbility.Cooldown = BasicCooldown * 10 + 10;
                     TelekinesisThrowActivatedAbility.Cooldown = BasicCooldown * 10 + 10;
                     ParentObject.UseEnergy(1000, "Mental");
+
                     return true;
                 }
                 return false;
@@ -622,6 +652,7 @@ namespace XRL.World.Parts.Mutation
 
                 TelekinesisGentlyPickupAndPlaceCreatureActivatedAbility.Cooldown = BasicCooldown * 40 + 10;
                 TelekinesisThrowActivatedAbility.Cooldown = BasicCooldown * 40 + 10;
+
                 ParentObject.UseEnergy(1000, "Mental");
 
                 return true;
@@ -634,16 +665,18 @@ namespace XRL.World.Parts.Mutation
                 char key = 'a';
                 Cell cell = PickTarget.ShowPicker(PickTarget.PickStyle.Line, Level, Level, ParentObject.Physics.CurrentCell.X, ParentObject.Physics.CurrentCell.Y, false, AllowVis.OnlyVisible);
 
-                if (cell.DistanceTo(ParentObject) > TelekinesisRange)
-                {
-                    MessageQueue.AddPlayerMessage("You can't reach that far.");
-                    return true;
-                }
-
                 if (cell == null)
                 {
                     return true;
                 }
+
+                if (cell.DistanceTo(ParentObject) > TelekinesisRange)
+                {
+                    MessageQueue.AddPlayerMessage("You can't reach that far.");
+
+                    return true;
+                }
+
                 List<GameObject> objectsInCell = cell.GetObjectsInCell();
 
                 //Stopped working after some update, probably not necessary anyway and I can't seem to find any replacement
@@ -672,6 +705,7 @@ namespace XRL.World.Parts.Mutation
                 }
                 else
                 {
+                    //Throws null reference errors at unknown lines if you enter item menu but it seems to work anyway
                     PickItem.ShowPicker(new List<GameObject>(objectsToPickUp.Values), ref requestInterfaceExit, null, PickItem.PickItemDialogStyle.GetItemDialog, ParentObject);
                 }
 
