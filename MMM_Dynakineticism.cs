@@ -2,19 +2,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using XRL.Core;
-using XRL.Liquids;
 using XRL.Rules;
-using XRL.UI;
-using XRL.World;
 using XRL.World.AI.GoalHandlers;
 using XRL.World.Anatomy;
-using XRL.World.Parts;
-using XRL.World.Parts.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_Dynakineticism : BaseMutation
+    public class MMM_Dynakineticism : MMM_BaseMutation
     {
         public Guid DynakineticismActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry DynakineticismActivatedAbility;
@@ -22,24 +17,26 @@ namespace XRL.World.Parts.Mutation
 
         public MMM_Dynakineticism()
         {
-            this.DisplayName = "Dynakineticism";
-            this.Type = "Mental";
+            DisplayName = "Dynakineticism";
+            Type = "Mental";
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "CommandDynakineticism");
-            Object.RegisterPartEvent((IPart)this, "AIGetOffensiveMutationList");
+            Object.RegisterPartEvent(this, "CommandDynakineticism");
+            Object.RegisterPartEvent(this, "AIGetOffensiveMutationList");
+
+            base.Register(Object, Registrar);
         }
 
         public string GetDamageDice(int Level)
         {
             string s = "d";
-            int d1,
-                d2;
+            int d1, d2;
             int gradeLevel = 6;
             d1 = Level / gradeLevel + 1;
             d2 = Level % gradeLevel + 5;
+
             return d1.ToString() + s + d2.ToString();
         }
 
@@ -50,16 +47,12 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetLevelText(int Level)
         {
-            return "Cooldown: "
-                + this.Cooldown
-                + " rounds\n"
-                + "Damage: "
-                + this.GetDamageDice(Level);
+            return $"Cooldown: {Cooldown} rounds\nDamage: {GetDamageDice(Level)}";
         }
 
         public void Attack(Cell C)
         {
-            int num = Math.Max(this.ParentObject.Statistics["Ego"].Modifier, this.Level - 2);
+            int num = Math.Max(ParentObject.Statistics["Ego"].Modifier, Level - 2);
             if (C != null && C.GetObjectsInCell().Count > 0)
             {
                 List<GameObject> CurrentObjectsInCell = C.GetObjectsInCell();
@@ -76,12 +69,12 @@ namespace XRL.World.Parts.Mutation
                         int _Amount = 0;
                         for (int index = 0; index < Result; ++index)
                         {
-                            _Amount += Stat.Roll(this.GetDamageDice(this.Level));
+                            _Amount += Stat.Roll(GetDamageDice(Level));
                         }
 
                         if (_Amount == 0)
                         {
-                            if (this.ParentObject.IsPlayer())
+                            if (ParentObject.IsPlayer())
                                 XRLCore.Core.Game.Player.Messages.Add(
                                     "&rYou fail to do any damage to " + GO.DisplayName + "."
                                 );
@@ -95,11 +88,11 @@ namespace XRL.World.Parts.Mutation
                             if (
                                 GO.Statistics["Hitpoints"].Value <= damage.Amount
                                 && !GO.HasPart("Robot")
-                                && GO.GetPhase() == this.ParentObject.GetPhase()
+                                && GO.GetPhase() == ParentObject.GetPhase()
                             )
                             {
-                                Body TargetBody = GO.GetPart<Body>();
-                                List<BodyPart> AllBodyParts = (GO.GetPart("Body") as Body).GetParts();
+                                Body targetBody = GO.GetPart<Body>();
+                                List<BodyPart> AllBodyParts = targetBody.GetParts();
                                 List<BodyPart> BodyPartsToLose = new List<BodyPart>();
                                 int BodyPartsToLoseAmount = 0;
                                 foreach (BodyPart bodyPart in AllBodyParts)
@@ -107,15 +100,15 @@ namespace XRL.World.Parts.Mutation
                                     if (
                                         bodyPart.Type != "Body"
                                         && bodyPart.Type != "Back"
-                                        && (
+                                        &&
                                             bodyPart.Type != "Floating Nearby"
                                             && bodyPart.Type != "Missile Weapon"
-                                        )
-                                        && (
+
+                                        &&
                                             bodyPart.Type != "Thrown Weapon"
                                             && !bodyPart.Type.Contains("Ammo")
                                             && bodyPart.Type != "Hands"
-                                        )
+
                                     )
                                     {
                                         if (bodyPart.GetParentPart().Type == "Body")
@@ -128,10 +121,8 @@ namespace XRL.World.Parts.Mutation
                                 int i = 0;
                                 for (i = BodyPartsToLoseAmount; i > 0; i--)
                                 {
-                                    GameObject severedBodyPart = TargetBody.Dismember(
-                                        BodyPartsToLose[i - 1]
-                                    );
-                                    Physics part = severedBodyPart.GetPart("Physics") as Physics;
+                                    GameObject severedBodyPart = targetBody.Dismember(BodyPartsToLose[i - 1]);
+                                    Physics part = severedBodyPart.Physics;
                                     part.Push(Directions.GetRandomDirection(), 10, 1);
                                 }
 
@@ -146,24 +137,21 @@ namespace XRL.World.Parts.Mutation
 
                                 for (i = 0; i < randombones; i++)
                                 {
-                                    GameObject NewBones = GameObjectFactory.Factory.CreateObject(
-                                        "Bones"
-                                    );
+                                    GameObject NewBones = GameObjectFactory.Factory.CreateObject("Bones");
                                     C.AddObject(NewBones);
-                                    Physics part = NewBones.GetPart("Physics") as Physics;
+                                    Physics part = NewBones.Physics;
                                     part.Push(Directions.GetRandomDirection(), 10, 1);
                                 }
 
                                 i = Stat.Random(5, 5 + ToughMod * 2);
                                 do
                                 {
-                                    Physics part0 = GO.GetPart("Physics") as Physics;
                                     for (int splatters = 0; splatters < 9; splatters++)
                                     {
                                         GO.BloodsplatterBurst(
                                             true,
                                             (float)(
-                                                (double)Stat.Random(0, 359)
+                                                Stat.Random(0, 359)
                                                 / 360.0
                                                 * 3.14159274101257
                                                 * 2.0
@@ -176,19 +164,19 @@ namespace XRL.World.Parts.Mutation
                             }
 
                             Event E = Event.New("TakeDamage", 0, 0, 0);
-                            E.AddParameter("Damage", (object)damage);
-                            E.AddParameter("Owner", (object)this.ParentObject);
-                            E.AddParameter("Attacker", (object)this.ParentObject);
+                            E.AddParameter("Damage", damage);
+                            E.AddParameter("Owner", ParentObject);
+                            E.AddParameter("Attacker", ParentObject);
 
                             if (!GO.FireEvent(E) || damage.Amount == 0)
                             {
                                 if (GO.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "&rThe "
-                                            + this.ParentObject.DisplayName
+                                            + ParentObject.DisplayName
                                             + " tries to explode you, but fails."
                                     );
-                                else if (this.ParentObject.IsPlayer())
+                                else if (ParentObject.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "You fail to do any damage to "
                                             + GO.the
@@ -201,7 +189,7 @@ namespace XRL.World.Parts.Mutation
                                 if (GO.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "&rThe "
-                                            + this.ParentObject.DisplayName
+                                            + ParentObject.DisplayName
                                             + " harms you "
                                             + resultColor
                                             + "(x"
@@ -210,7 +198,7 @@ namespace XRL.World.Parts.Mutation
                                             + damage.Amount.ToString()
                                             + " damage!"
                                     );
-                                else if (this.ParentObject.IsPlayer())
+                                else if (ParentObject.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "&gYou apply pressure to "
                                             + GO.DisplayName
@@ -224,9 +212,7 @@ namespace XRL.World.Parts.Mutation
                             }
                         }
                     }
-                    else if ( /*GO.HasTag("Wall") || GO.HasPart("Door")*/
-                        GO.pPhysics.Solid == true
-                    )
+                    else if ( /*GO.HasTag("Wall") || GO.HasPart("Door")*/GO.Physics.Solid == true)
                     {
                         int Result = Stat.RollDamagePenetrations(
                             GO.Statistics["AV"].Value,
@@ -237,12 +223,12 @@ namespace XRL.World.Parts.Mutation
                         int _Amount = 0;
                         for (int index = 0; index < Result; ++index)
                         {
-                            _Amount += Stat.Roll(this.GetDamageDice(this.Level));
+                            _Amount += Stat.Roll(GetDamageDice(Level));
                         }
 
                         if (_Amount == 0)
                         {
-                            if (this.ParentObject.IsPlayer())
+                            if (ParentObject.IsPlayer())
                                 XRLCore.Core.Game.Player.Messages.Add(
                                     "&rYou fail to do any damage to " + GO.DisplayName + "."
                                 );
@@ -255,19 +241,19 @@ namespace XRL.World.Parts.Mutation
                             //XRLCore.Core.Game.Player.Messages.Add(GO.DisplayName + " has " + GO.Statistics["Hitpoints"].Value.ToString() + " hp, while he is supposed to be hit for " + damage.Amount.ToString() + " hp.");
 
                             Event E = Event.New("TakeDamage", 0, 0, 0);
-                            E.AddParameter("Damage", (object)damage);
-                            E.AddParameter("Owner", (object)this.ParentObject);
-                            E.AddParameter("Attacker", (object)this.ParentObject);
+                            E.AddParameter("Damage", damage);
+                            E.AddParameter("Owner", ParentObject);
+                            E.AddParameter("Attacker", ParentObject);
 
                             if (!GO.FireEvent(E) || damage.Amount == 0)
                             {
                                 if (GO.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "&rThe "
-                                            + this.ParentObject.DisplayName
+                                            + ParentObject.DisplayName
                                             + " tries to explode you, but fails."
                                     );
-                                else if (this.ParentObject.IsPlayer())
+                                else if (ParentObject.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "You fail to do any damage to "
                                             + GO.the
@@ -280,7 +266,7 @@ namespace XRL.World.Parts.Mutation
                                 if (GO.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "&rThe "
-                                            + this.ParentObject.DisplayName
+                                            + ParentObject.DisplayName
                                             + " harms you "
                                             + resultColor
                                             + "(x"
@@ -289,7 +275,7 @@ namespace XRL.World.Parts.Mutation
                                             + damage.Amount.ToString()
                                             + " damage!"
                                     );
-                                else if (this.ParentObject.IsPlayer())
+                                else if (ParentObject.IsPlayer())
                                     XRLCore.Core.Game.Player.Messages.Add(
                                         "&gYou apply pressure to "
                                             + GO.DisplayName
@@ -311,30 +297,30 @@ namespace XRL.World.Parts.Mutation
         {
             if (E.ID == "AIGetOffensiveMutationList")
             {
-                int parameter1 = (int)E.GetParameter("Distance");
-                GameObject parameter2 = E.GetParameter("Target") as GameObject;
-                List<AICommandList> parameter3 = (List<AICommandList>)E.GetParameter("List");
-                if (
-                    this.DynakineticismActivatedAbility != null
-                    && this.DynakineticismActivatedAbility.Cooldown <= 0
-                    && (
-                        parameter1 <= 80
-                        && this.ParentObject.HasLOSTo(parameter2, true)
-                        && this.ParentObject.pPhysics.CurrentCell.DistanceTo(parameter2) <= 8
-                    )
-                )
-                    parameter3.Add(new AICommandList("CommandDynakineticism", 1));
+                int distance = (int)E.GetParameter("Distance");
+                GameObject target = E.GetParameter("Target") as GameObject;
+                List<AICommandList> aiCommandList = (List<AICommandList>)E.GetParameter("List");
+
+                if (DynakineticismActivatedAbility != null &&
+                    DynakineticismActivatedAbility.Cooldown <= 0 &&
+                    distance <= 80 &&
+                    ParentObject.HasLOSTo(target, true) &&
+                    ParentObject.Physics.CurrentCell.DistanceTo(target) <= 8)
+                {
+                    aiCommandList.Add(new AICommandList("CommandDynakineticism", 1));
+                }
+
                 return true;
             }
             if (E.ID == "CommandDynakineticism")
             {
-                Cell C = this.PickDestinationCell(80, AllowVis.OnlyVisible, true);
+                Cell C = PickDestinationCell(80, AllowVis.OnlyVisible, true);
                 if (C != null)
                 {
-                    this.Attack(C);
+                    Attack(C);
                     Thread.Sleep(50);
-                    this.DynakineticismActivatedAbility.Cooldown = Cooldown * 10;
-                    this.UseEnergy(1000, "Mental");
+                    DynakineticismActivatedAbility.Cooldown = Cooldown * 10;
+                    UseEnergy(1000, "Mental");
                 }
             }
             return true;
@@ -347,28 +333,21 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            this.Unmutate(GO);
-            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
-            this.DynakineticismActivatedAbilityID = part.AddAbility(
-                "Dynakineticism",
-                "CommandDynakineticism",
-                "Mental Mutation"
-            );
-            this.DynakineticismActivatedAbility = part.AbilityByGuid[
-                this.DynakineticismActivatedAbilityID
-            ];
+            ActivatedAbilities part = GetActivatedAbilities(GO);
+
+            if (part != null)
+            {
+                DynakineticismActivatedAbilityID = part.AddAbility("Dynakineticism", "CommandDynakineticism", "Mental Mutation");
+                DynakineticismActivatedAbility = part.AbilityByGuid[DynakineticismActivatedAbilityID];
+            }
+
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            if (this.DynakineticismActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(
-                    this.DynakineticismActivatedAbilityID
-                );
-                this.DynakineticismActivatedAbilityID = Guid.Empty;
-            }
+            RemoveMutationByGUID(GO, ref DynakineticismActivatedAbilityID);
+
             return base.Unmutate(GO);
         }
     }

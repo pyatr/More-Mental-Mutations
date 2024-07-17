@@ -1,28 +1,23 @@
 using System;
-using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
-using XRL.UI;
-using XRL.Rules;
-using XRL.World;
-using XRL.World.Parts;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_Hypnotising : BaseMutation
+    public class MMM_Hypnotising : MMM_BaseMutation
     {
         public Guid DummyActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry DummyActivatedAbility;
 
         public MMM_Hypnotising()
         {
-            this.DisplayName = "Hypnotising";
+            DisplayName = "Hypnotising";
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "CommandDummy");
+            Object.RegisterPartEvent(this, "CommandDummy");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
@@ -47,23 +42,23 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
+            ActivatedAbilities part = GetActivatedAbilities(GO);
+
             if (part != null)
             {
-                this.DummyActivatedAbilityID = part.AddAbility("huh", "CommandDummy", "Mental Mutation");
-                this.DummyActivatedAbility = part.AbilityByGuid[this.DummyActivatedAbilityID];
+                DummyActivatedAbilityID = part.AddAbility("huh", "CommandDummy", "Mental Mutation");
+                DummyActivatedAbility = part.AbilityByGuid[DummyActivatedAbilityID];
             }
-            this.ChangeLevel(Level);
+
+            ChangeLevel(Level);
+
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            if (this.DummyActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.DummyActivatedAbilityID);
-                this.DummyActivatedAbilityID = Guid.Empty;
-            }
+            RemoveMutationByGUID(GO, ref DummyActivatedAbilityID);
+
             return base.Unmutate(GO);
         }
     }

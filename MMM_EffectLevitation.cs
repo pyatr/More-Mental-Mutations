@@ -1,75 +1,68 @@
 using System;
-using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
-using XRL.World.Parts;
+using XRL;
+using XRL.World;
 using XRL.World.Parts.Mutation;
 
-namespace XRL.World.Parts.Effects
+namespace MoreMentalMutations.Effects
 {
     [Serializable]
     public class MMM_EffectLevitation : Effect
     {
         public GameObject Levitator;
+        public new string DisplayName = "&clevitation";
 
-        public MMM_EffectLevitation()
+        public MMM_EffectLevitation(int _Duration, GameObject parent)
         {
-            this.DisplayName = "&clevitation";
-        }
-
-        public MMM_EffectLevitation(int _Duration, GameObject parent) : this()
-        {
-            this.DisplayName = "&clevitation";
-            this.Duration = _Duration;
-            this.Levitator = parent;
+            Duration = _Duration;
+            Levitator = parent;
         }
 
         public override string GetDetails()
         {
-            return "You are levitating (" + this.Duration.ToString() + " turns left).";
+            return "You are levitating (" + Duration.ToString() + " turns left).";
         }
 
         public override bool Apply(GameObject Object)
         {
-            GameObject.validate(ref this.Levitator);
+            GameObject.Validate(ref Levitator);
             return true;
         }
 
         public override void Remove(GameObject Object)
         {
-            GameObject.validate(ref this.Levitator);
+            GameObject.Validate(ref Levitator);
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent((Effect)this, "EndTurn");
-            Object.RegisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
-        }
+            Object.RegisterEffectEvent(this, "EndTurn");
+            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
+            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
 
-        public override void Unregister(GameObject Object)
-        {
-            Object.UnregisterEffectEvent((Effect)this, "EndTurn");
-            Object.UnregisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.UnregisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
+            base.Register(Object, Registrar);
         }
 
         public override bool FireEvent(Event E)
         {
             if (E.ID == "EndTurn")
             {
-                --this.Duration;
-                if (this.Duration == 0 && GameObject.validate(ref this.Levitator))
+                --Duration;
+
+                if (Duration == 0 && GameObject.Validate(ref Levitator))
                 {
-                    MMM_Levitation l = this.Levitator.GetPart("MMM_Levitation") as MMM_Levitation;
-                    if (l != null)
-                        l.StopFlying();
+                    Levitator.GetPart<MMM_Levitation>()?.StopFlying();
                 }
             }
+
             if (E.ID == "BeforeDeepCopyWithoutEffects")
-                GameObject.validate(ref this.Levitator);
+            {
+                GameObject.Validate(ref Levitator);
+            }
+
             if (E.ID == "AfterDeepCopyWithoutEffects")
-                GameObject.validate(ref this.Levitator);
+            {
+                GameObject.Validate(ref Levitator);
+            }
             return true;
         }
     }

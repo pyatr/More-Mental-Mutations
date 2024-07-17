@@ -1,29 +1,20 @@
 using System;
-using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
-using XRL.World.Parts;
-using XRL.World.AI;
-using XRL.World.AI.GoalHandlers;
+using MoreMentalMutations.Opinions;
+using XRL;
+using XRL.World;
 
-namespace XRL.World.Parts.Effects
+namespace MoreMentalMutations.Effects
 {
     [Serializable]
     public class MMM_EffectIgnoreObject : Effect
     {
         public GameObject ObjectToIgnore;
-        public int PreviousFeeling;
 
-        public MMM_EffectIgnoreObject()
+        public MMM_EffectIgnoreObject(GameObject Object, int _Duration)
         {
-            this.DisplayName = "";
-        }
-
-        public MMM_EffectIgnoreObject(GameObject Object, int _Duration) : this()
-        {
-            this.ObjectToIgnore = Object;
-            this.Duration = _Duration;
-            this.DisplayName = "";// &Cignoring" + ObjectToIgnore.DisplayName + " located at " + ObjectToIgnore.pPhysics.CurrentCell.Pos2D.ToString();
+            ObjectToIgnore = Object;
+            Duration = _Duration;
+            DisplayName = "";// &Cignoring" + ObjectToIgnore.DisplayName + " located at " + ObjectToIgnore.Physics.CurrentCell.Pos2D.ToString();
         }
 
         public override string GetDetails()
@@ -33,91 +24,101 @@ namespace XRL.World.Parts.Effects
 
         public override bool Apply(GameObject Object)
         {
-            this.ApplyEffect();
+            ApplyEffect();
+
             return true;
         }
 
         public override void Remove(GameObject Object)
         {
-            this.RestoreFeeling();
+            RestoreFeeling();
         }
 
         public void ApplyEffect()
         {
-            GameObject.validate(ref this.ObjectToIgnore);
-            if (this.Object.GetPart<Brain>().PartyLeader != this.ObjectToIgnore)
+            GameObject.Validate(ref ObjectToIgnore);
+            if (Object.Brain.PartyLeader != ObjectToIgnore)
             {
-                this.Object.GetPart<Brain>().Target = (GameObject)null;
-                if (this.Object.GetPart<Brain>().Goals != null)
-                    this.Object.GetPart<Brain>().Goals.Clear();
-                this.PreviousFeeling = this.Object.GetPart<Brain>().GetFeeling(this.ObjectToIgnore);
-                this.Object.GetPart<Brain>().SetFeeling(this.ObjectToIgnore, 0);
+                Object.Brain.Target = null;
+                Object.Brain.Goals?.Clear();
+
+                Object.Brain.AddOpinion<OpinionObfuscate>(ObjectToIgnore, 1);
             }
         }
 
         public void RestoreFeeling()
         {
-            GameObject.validate(ref this.ObjectToIgnore);
-            if (this.Object.GetPart<Brain>().PartyLeader != this.ObjectToIgnore)
-                this.Object.GetPart<Brain>().SetFeeling(this.ObjectToIgnore, this.PreviousFeeling);
-            this.ObjectToIgnore = (GameObject)null;
+            GameObject.Validate(ref ObjectToIgnore);
+
+            if (Object.Brain.PartyLeader != ObjectToIgnore)
+            {
+                Object.Brain.RemoveOpinion<OpinionObfuscate>(ObjectToIgnore);
+            }
+
+            ObjectToIgnore = null;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent((Effect)this, "EndTurn");
-            Object.RegisterEffectEvent((Effect)this, "BeginTakeAction");
-            Object.RegisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
-        }
+            Object.RegisterEffectEvent(this, "EndTurn");
+            Object.RegisterEffectEvent(this, "BeginTakeAction");
+            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
+            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
 
-        public override void Unregister(GameObject Object)
-        {
-            Object.UnregisterEffectEvent((Effect)this, "EndTurn");
-            Object.UnregisterEffectEvent((Effect)this, "BeginTakeAction");
-            Object.UnregisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.UnregisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
+            base.Register(Object, Registrar);
         }
 
         public override bool FireEvent(Event E)
         {
             if (E.ID == "BeginTakeAction")
             {
-                if (!GameObject.validate(ref this.ObjectToIgnore))
-                    this.Duration = 0;
-                if (this.Duration > 0)
+                if (!GameObject.Validate(ref ObjectToIgnore))
                 {
-                    if (this.Object.GetPart<Brain>().GetFeeling(this.ObjectToIgnore) != 0)
+                    Duration = 0;
+                }
+
+                if (Duration > 0)
+                {
+                    if (Object.Brain.GetFeeling(ObjectToIgnore) != 0)
                     {
-                        this.PreviousFeeling = this.Object.GetPart<Brain>().GetFeeling(this.ObjectToIgnore);
-                        this.ApplyEffect();
+                        ApplyEffect();
                     }
-                    if (this.ObjectToIgnore.HasEffect("MMM_EffectObfuscated"))
+
+                    if (ObjectToIgnore.HasEffect<EffectObfuscated>())
                     {
-                        if (this.Object.GetPart<Brain>().Target == this.ObjectToIgnore)
+                        if (Object.Brain.Target == ObjectToIgnore)
                         {
-                            this.Object.GetPart<Brain>().Target = (GameObject)null;
+                            Object.Brain.Target = null;
                         }
                     }
                 }
             }
+
             if (E.ID == "EndTurn")
             {
-                if (this.ObjectToIgnore.HasEffect("MMM_EffectObfuscated") && this.Duration > 0)
+                if (ObjectToIgnore.HasEffect<EffectObfuscated>() && Duration > 0)
                 {
-                    --this.Duration;
+                    --Duration;
                 }
                 else
                 {
-                    this.RestoreFeeling();
-                    this.Duration = 0;
+                    RestoreFeeling();
+                    Duration = 0;
                 }
+
                 return true;
             }
+
             if (E.ID == "BeforeDeepCopyWithoutEffects")
-                this.RestoreFeeling();
+            {
+                RestoreFeeling();
+            }
+
             if (E.ID == "AfterDeepCopyWithoutEffects")
-                this.ApplyEffect();
+            {
+                ApplyEffect();
+            }
+
             return base.FireEvent(E);
         }
     }

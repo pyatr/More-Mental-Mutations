@@ -1,19 +1,14 @@
 using System;
 using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
 using XRL.UI;
-using XRL.Rules;
-using XRL.World;
 using XRL.World.Anatomy;
-using XRL.World.Parts;
-using XRL.World.Parts.Effects;
 using ConsoleLib.Console;
+using MoreMentalMutations.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_Summoning : BaseMutation
+    public class MMM_Summoning : MMM_BaseMutation
     {
         public Guid SummonWeaponActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry SummonWeaponActivatedAbility;
@@ -36,11 +31,11 @@ namespace XRL.World.Parts.Mutation
         private List<GameObject> SpawnedWeapons = new List<GameObject>();
 
         public int SummonDuration = 50;
-        
+
         public MMM_Summoning()
         {
-            this.DisplayName = "Summoning";
-            this.Type = "Mental";
+            DisplayName = "Summoning";
+            Type = "Mental";
             WeaponBlueprints.Add("long sword");
             WeaponBlueprints.Add("short sword");
             WeaponBlueprints.Add("dagger");
@@ -56,33 +51,33 @@ namespace XRL.World.Parts.Mutation
             CreatureBlueprints.Add("pseudo-flesh");
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "EndTurn");
-            Object.RegisterPartEvent((IPart)this, "CommandSummonWeapon");
-            Object.RegisterPartEvent((IPart)this, "CommandSummonCreature");
-            Object.RegisterPartEvent((IPart)this, "CommandWeaponMenu");
-            Object.RegisterPartEvent((IPart)this, "CommandCreatureMenu");
-            Object.RegisterPartEvent((IPart)this, "CommandWeaponSpawnTwoHanded");
-            Object.RegisterPartEvent((IPart)this, "CommandWeaponSpawnDual");
+            Object.RegisterPartEvent(this, "EndTurn");
+            Object.RegisterPartEvent(this, "CommandSummonWeapon");
+            Object.RegisterPartEvent(this, "CommandSummonCreature");
+            Object.RegisterPartEvent(this, "CommandWeaponMenu");
+            Object.RegisterPartEvent(this, "CommandCreatureMenu");
+            Object.RegisterPartEvent(this, "CommandWeaponSpawnTwoHanded");
+            Object.RegisterPartEvent(this, "CommandWeaponSpawnDual");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
         {
-            return "You may summon extradimensional creatures or weapons for " + this.SummonDuration.ToString() + " turns.";
+            return "You may summon extradimensional creatures or weapons for " + SummonDuration.ToString() + " turns.";
         }
 
         public override string GetLevelText(int Level)
         {
             string stri = "";
+
             if (Level != this.Level)
             {
                 stri += "Summon better weapons and creatures.";
             }
-            else
-            {
 
-            }
             return stri;
         }
 
@@ -106,11 +101,11 @@ namespace XRL.World.Parts.Mutation
                 for (i = 0; i <= max + 2; i++)
                     emptyline += " ";
 
-                scrapBuffer1.SingleBox(40 - (2 + max / 2) - 1, 12 - (1 + Entries.Count / 2) - 1, 40 + (2 + max / 2) + 1, 12 + (0 + Entries.Count / 2 + Entries.Count % 2) + 1, ColorUtility.MakeColor(TextColor.Grey, TextColor.Black));
+                scrapBuffer1.SingleBox(40 - (2 + max / 2) - 1, 12 - (1 + Entries.Count / 2) - 1, 40 + 2 + max / 2 + 1, 12 + 0 + Entries.Count / 2 + Entries.Count % 2 + 1, ColorUtility.MakeColor(TextColor.Grey, TextColor.Black));
 
                 scrapBuffer1.Goto(40 - (2 + max / 2), 12 - (1 + Entries.Count / 2));
                 scrapBuffer1.Write(emptyline);
-                scrapBuffer1.Goto(40 - (2 + max / 2), 12 + (1 + Entries.Count / 2) + 2);
+                scrapBuffer1.Goto(40 - (2 + max / 2), 12 + 1 + Entries.Count / 2 + 2);
                 scrapBuffer1.Write(emptyline);
 
                 string actualtitle = "[";
@@ -133,7 +128,7 @@ namespace XRL.World.Parts.Mutation
                         scrapBuffer1.Write(emptyline);
                         scrapBuffer1.Goto(40 - (2 + max / 2) + 1, 12 - (1 + Entries.Count / 2) + i + 1);
                         scrapBuffer1.Write(line);
-                        Popup._TextConsole.DrawBuffer(scrapBuffer1, (IScreenBufferExtra)null, false);
+                        Popup._TextConsole.DrawBuffer(scrapBuffer1, null, false);
                     }
                     keys = Keyboard.getvk(Options.GetOption("OptionMapDirectionsToKeypad", string.Empty) == "Yes", true);
                     if (keys == Keys.Enter || keys == Keys.Space)
@@ -161,103 +156,107 @@ namespace XRL.World.Parts.Mutation
 
         public GameObject SpawnWeapon()
         {
-            GameObject GO = (GameObject)null;
             int Dices = 1, Sides = 1, Bonus = 0;
-            GO = GameObjectFactory.Factory.CreateObject("MMM_SummonedMeleeWeapon", 0, 0, null);//Making sure it doesn't spawn with mods
-            GO.pPhysics.Weight = 12;
-            if (this.ChosenWeaponBlueprint == "long sword")
+            GameObject GO = GameObjectFactory.Factory.CreateObject("SummonedMeleeWeapon", 0, 0, null);//Making sure it doesn't spawn with mods
+            GO.Physics.Weight = 12;
+
+            if (ChosenWeaponBlueprint == "long sword")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "LongBlades";
-                GO.GetPart<Render>().Tile = "items/sw_sword.bmp";
-                Dices = this.Level / 6 + 1;
-                Sides = 1 + (this.Level) % 6;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.UsesTwoSlots = true; Dices++; Sides += 2; }
+                GO.Render.Tile = "items/sw_sword.bmp";
+                Dices = Level / 6 + 1;
+                Sides = 1 + Level % 6;
+                if (SpawnTwohandedActivatedAbility.ToggleState == true) { GO.Physics.UsesTwoSlots = true; Dices++; Sides += 2; }
             }
-            if (this.ChosenWeaponBlueprint == "short sword")
+
+            if (ChosenWeaponBlueprint == "short sword")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "ShortBlades";
-                GO.GetPart<Render>().Tile = "items/sw_dagger1.bmp";
-                GO.pPhysics.Weight /=2;
+                GO.Render.Tile = "items/sw_dagger1.bmp";
+                GO.Physics.Weight /= 2;
                 Dices = 1;
-                if (this.Level <= 9)
+                if (Level <= 9)
                 {
-                    Sides = 3 + this.Level;
+                    Sides = 3 + Level;
                 }
                 else
                 {
                     Sides = 12;
-                    Bonus = this.Level - 9;
+                    Bonus = Level - 9;
                 }
             }
-            if (this.ChosenWeaponBlueprint == "axe")
+            if (ChosenWeaponBlueprint == "axe")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "Axe";
                 GO.GetPart<Render>().Tile = "Assets_Content_Textures_Items_sw_axe.bmp";
-                if (this.Level <= 6)
-                    Sides += this.Level + 1;
+                if (Level <= 6)
+                    Sides += Level + 1;
                 else
                 {
                     Sides = 8;
-                    Bonus += this.Level - 6;
+                    Bonus += Level - 6;
                 }
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true)
+                if (SpawnTwohandedActivatedAbility.ToggleState == true)
                 {
-                    GO.pPhysics.UsesTwoSlots = true;
+                    GO.Physics.UsesTwoSlots = true;
                     Bonus += 2;
                 }
             }
-            if (this.ChosenWeaponBlueprint == "dagger")
+            if (ChosenWeaponBlueprint == "dagger")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "ShortBlades";
                 GO.GetPart<Render>().Tile = "items/sw_dagger1.bmp";
-                GO.pPhysics.Weight /= 2;
+                GO.Physics.Weight /= 2;
                 Dices = 1;
-                if (this.Level <= 9) { Sides = 3 + this.Level; }
-                else { Sides = 12; Bonus = this.Level - 9; }
+                if (Level <= 9) { Sides = 3 + Level; }
+                else { Sides = 12; Bonus = Level - 9; }
             }
-            if (this.ChosenWeaponBlueprint == "hammer")
+            if (ChosenWeaponBlueprint == "hammer")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "Cudgel";
                 GO.GetPart<Render>().RenderString = "/";
-                Dices = 2 + this.Level / 10;
-                Sides = 1 + this.Level % 12;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.UsesTwoSlots = true; Bonus = 2; }
+                Dices = 2 + Level / 10;
+                Sides = 1 + Level % 12;
+                if (SpawnTwohandedActivatedAbility.ToggleState == true) { GO.Physics.UsesTwoSlots = true; Bonus = 2; }
             }
-            if (this.ChosenWeaponBlueprint == "mace")
+            if (ChosenWeaponBlueprint == "mace")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "Cudgel";
                 GO.GetPart<Render>().RenderString = "/";
-                Dices = 2 + this.Level / 6;
-                Sides = 1 + this.Level % 3;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true) { GO.pPhysics.UsesTwoSlots = true; Bonus = 3; }
+                Dices = 2 + Level / 6;
+                Sides = 1 + Level % 3;
+                if (SpawnTwohandedActivatedAbility.ToggleState == true) { GO.Physics.UsesTwoSlots = true; Bonus = 3; }
             }
-            if (this.ChosenWeaponBlueprint == "staff")
+            if (ChosenWeaponBlueprint == "staff")
             {
                 GO.GetPart<MeleeWeapon>().Skill = "Cudgel";
                 GO.GetPart<Render>().RenderString = "/";
                 Dices = 2;
-                Sides = 1 + this.Level / 2;
-                if (this.SpawnTwohandedActivatedAbility.ToggleState == true)
+                Sides = 1 + Level / 2;
+                if (SpawnTwohandedActivatedAbility.ToggleState == true)
                 {
-                    GO.pPhysics.UsesTwoSlots = true; Dices++;
+                    GO.Physics.UsesTwoSlots = true; Dices++;
                 }
             }
 
             GO.GetPart<Description>().Short = "";//Adds to the mystery
-            GO.GetPart<MeleeWeapon>().MaxStrengthBonus = this.Level;
+            GO.GetPart<MeleeWeapon>().MaxStrengthBonus = Level;
             GO.GetPart<MeleeWeapon>().BaseDamage = Dices.ToString() + "d" + Sides.ToString();
             if (Bonus > 0) GO.GetPart<MeleeWeapon>().BaseDamage += "+" + Bonus.ToString();
-            if (GO.pPhysics.UsesTwoSlots == true)
+            if (GO.Physics.UsesTwoSlots == true)
             {
-                GO.DisplayName = "&oextradimensional &btwo-handed " + this.ChosenWeaponBlueprint;
-                GO.pPhysics.Weight *= 10;
-                GO.pPhysics.Weight /= 7;
+                GO.DisplayName = "&oextradimensional &btwo-handed " + ChosenWeaponBlueprint;
+                GO.Physics.Weight *= 10;
+                GO.Physics.Weight /= 7;
             }
             else
-                GO.DisplayName = "&oextradimensional &b" + this.ChosenWeaponBlueprint;
-            GO.pRender.ColorString = "&b";
-            GO.AddPart<Temporary>(new Temporary(this.SummonDuration), true);
-            this.ParentObject.ApplyEffect((Effect)new MMM_EffectSummonedSomething(this.SummonDuration, GO.DisplayName));
+            {
+                GO.DisplayName = "&oextradimensional &b" + ChosenWeaponBlueprint;
+            }
+
+            GO.Render.ColorString = "&b";
+            GO.AddPart<XRL.World.Parts.Temporary>(new XRL.World.Parts.Temporary(SummonDuration), true);
+            ParentObject.ApplyEffect(new MMM_EffectSummonedSomething(SummonDuration, GO.DisplayName));
             return GO;
         }
 
@@ -270,21 +269,21 @@ namespace XRL.World.Parts.Mutation
                     List<BodyPart> ReqHands = new List<BodyPart>();
 
                     SpawnedWeapons.Add(SpawnWeapon());
-                    if (SpawnedWeapons[0].pPhysics.UsesTwoSlots == false && this.SpawnDualWeaponsActivatedAbility.ToggleState)
+                    if (SpawnedWeapons[0].Physics.UsesTwoSlots == false && SpawnDualWeaponsActivatedAbility.ToggleState)
                         SpawnedWeapons.Add(SpawnWeapon());
 
-                    Body part1 = this.ParentObject.GetPart("Body") as Body;
+                    Body part1 = ParentObject.Body;
 
                     foreach (BodyPart bodyPart in part1.GetParts())
                     {
                         if (bodyPart.Type == "Hand")
                         {
-                            if (ReqHands.Count < 1 || (this.SpawnTwohandedActivatedAbility.ToggleState || this.SpawnDualWeaponsActivatedAbility.ToggleState) && ReqHands.Count < 2)
+                            if (ReqHands.Count < 1 || (SpawnTwohandedActivatedAbility.ToggleState || SpawnDualWeaponsActivatedAbility.ToggleState) && ReqHands.Count < 2)
                                 ReqHands.Add(bodyPart);
                         }
                     }
 
-                    if (SpawnedWeapons[0].pPhysics.UsesTwoSlots != true && this.SpawnDualWeaponsActivatedAbility.ToggleState)//Spawning dual weapons
+                    if (SpawnedWeapons[0].Physics.UsesTwoSlots != true && SpawnDualWeaponsActivatedAbility.ToggleState)//Spawning dual weapons
                     {
                         int HandNumber = 0;
                         //MessageQueue.AddPlayerMessage(ReqHands.Count.ToString());
@@ -293,91 +292,104 @@ namespace XRL.World.Parts.Mutation
                             if (bodyPart.Equipped != null && bodyPart.Equipped.GetIntProperty("Natural", 0) == 0/* && (bodyPart.Equipped.GetBlueprint().InheritsFrom("MeleeWeapon"))*/)
                             {
                                 GameObject equipped = bodyPart.Equipped;
-                                this.ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", (object)bodyPart));
+                                ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", bodyPart));
                             }
 
                             Event E2 = Event.New("CommandForceEquipObject", 0, 0, 0);
-                            E2.AddParameter("Object", (object)SpawnedWeapons[HandNumber]);
-                            E2.AddParameter("BodyPart", (object)bodyPart);
-                            this.ParentObject.FireEvent(E2);
+                            E2.AddParameter("Object", SpawnedWeapons[HandNumber]);
+                            E2.AddParameter("BodyPart", bodyPart);
+                            ParentObject.FireEvent(E2);
                             HandNumber++;
                         }
                     }
 
-                    if (SpawnedWeapons[0].pPhysics.UsesTwoSlots)//Spawning two-handed weapons
+                    if (SpawnedWeapons[0].Physics.UsesTwoSlots)//Spawning two-handed weapons
                     {
                         foreach (BodyPart bodyPart in ReqHands)
                         {
                             if (bodyPart.Equipped != null && bodyPart.Equipped.GetIntProperty("Natural", 0) == 0/* && (bodyPart.Equipped.GetBlueprint().InheritsFrom("MeleeWeapon"))*/)
                             {
                                 GameObject equipped = bodyPart.Equipped;
-                                this.ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", (object)bodyPart));
+                                ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", bodyPart));
                             }
                         }
                         Event E2 = Event.New("CommandForceEquipObject", 0, 0, 0);
-                        E2.AddParameter("Object", (object)SpawnedWeapons[0]);
-                        E2.AddParameter("BodyPart", (object)ReqHands[0]);
-                        this.ParentObject.FireEvent(E2);
+                        E2.AddParameter("Object", SpawnedWeapons[0]);
+                        E2.AddParameter("BodyPart", ReqHands[0]);
+                        ParentObject.FireEvent(E2);
                     }
                     else//Spawning one weapon
                     {
                         if (ReqHands[0].Equipped != null && ReqHands[0].Equipped.GetIntProperty("Natural", 0) == 0/* && (bodyPart.Equipped.GetBlueprint().InheritsFrom("MeleeWeapon"))*/)
                         {
                             GameObject equipped = ReqHands[0].Equipped;
-                            this.ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", (object)ReqHands[0]));
+                            ParentObject.FireEvent(Event.New("CommandForceUnequipObject", "BodyPart", ReqHands[0]));
                         }
 
                         Event E2 = Event.New("CommandForceEquipObject", 0, 0, 0);
-                        E2.AddParameter("Object", (object)SpawnedWeapons[0]);
-                        E2.AddParameter("BodyPart", (object)ReqHands[0]);
-                        this.ParentObject.FireEvent(E2);
+                        E2.AddParameter("Object", SpawnedWeapons[0]);
+                        E2.AddParameter("BodyPart", ReqHands[0]);
+                        ParentObject.FireEvent(E2);
                     }
                     return true;
                 }
                 else
                 {
-                    if (this.ParentObject.IsPlayer())
+                    if (ParentObject.IsPlayer())
                     {
-                        if (SpawnedWeapons.Count > 1)
-                            Popup.Show("You already have spawned weapons.", false);
-                        else
-                            Popup.Show("You already have a spawned weapon.", false);
+                        string message = "You already have spawned weapons.";
+
+                        if (SpawnedWeapons.Count == 1)
+                        {
+                            message = "You already have a spawned weapon.";
+                        }
+
+                        Popup.Show(message);
                     }
+
                     return true;
                 }
             }
+
             if (E.ID == "CommandSummonCreature")
             {
-
                 return true;
             }
+
             if (E.ID == "CommandWeaponMenu")
             {
-                this.ChosenWeaponBlueprint = Menu("Choose weapon", WeaponBlueprints);
-                this.SummonWeaponActivatedAbility.DisplayName = "Summon weapon" + " [" + this.ChosenWeaponBlueprint + "]";
+                ChosenWeaponBlueprint = Menu("Choose weapon", WeaponBlueprints);
+                SummonWeaponActivatedAbility.DisplayName = "Summon weapon" + " [" + ChosenWeaponBlueprint + "]";
 
                 return true;
             }
+
             if (E.ID == "CommandCreatureMenu")
             {
-                this.ChosenCreatureBlueprint = Menu("Choose creature", CreatureBlueprints);
-                this.SummonCreatureActivatedAbility.DisplayName = "Summon creature" + " [" + this.ChosenCreatureBlueprint + "]";
+                ChosenCreatureBlueprint = Menu("Choose creature", CreatureBlueprints);
+                SummonCreatureActivatedAbility.DisplayName = "Summon creature" + " [" + ChosenCreatureBlueprint + "]";
                 return true;
             }
+
             if (E.ID == "CommandWeaponSpawnTwoHanded")
             {
-                this.SpawnTwohandedActivatedAbility.ToggleState = !this.SpawnTwohandedActivatedAbility.ToggleState;
+                SpawnTwohandedActivatedAbility.ToggleState = !SpawnTwohandedActivatedAbility.ToggleState;
                 return true;
             }
+
             if (E.ID == "CommandWeaponSpawnDual")
             {
-                this.SpawnDualWeaponsActivatedAbility.ToggleState = !this.SpawnDualWeaponsActivatedAbility.ToggleState;
+                SpawnDualWeaponsActivatedAbility.ToggleState = !SpawnDualWeaponsActivatedAbility.ToggleState;
                 return true;
             }
+
             if (E.ID == "EndTurn")
             {
-                if (!this.ParentObject.HasEffect("MMM_EffectSummonedSomething") && this.SpawnedWeapons.Count > 0)
-                    this.SpawnedWeapons.Clear();
+                if (!ParentObject.HasEffect("EffectSummonedSomething") && SpawnedWeapons.Count > 0)
+                {
+                    SpawnedWeapons.Clear();
+                }
+
                 return true;
             }
             return base.FireEvent(E);
@@ -390,62 +402,42 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
+            ActivatedAbilities part = GetActivatedAbilities(GO);
+
             if (part != null)
             {
-                this.SummonWeaponActivatedAbilityID = part.AddAbility("Summon weapon", "CommandSummonWeapon", "Summoning");
-                this.SummonWeaponActivatedAbility = part.AbilityByGuid[this.SummonWeaponActivatedAbilityID];
-                this.SummonCreatureActivatedAbilityID = part.AddAbility("Summon creature", "CommandSummonCreature", "Summoning");
-                this.SummonCreatureActivatedAbility = part.AbilityByGuid[this.SummonCreatureActivatedAbilityID];
-                this.WeaponMenuActivatedAbilityID = part.AddAbility("Choose weapon", "CommandWeaponMenu", "Summoning");
-                this.WeaponMenuActivatedAbility = part.AbilityByGuid[this.WeaponMenuActivatedAbilityID];
-                this.CreatureMenuActivatedAbilityID = part.AddAbility("Choose creature", "CommandCreatureMenu", "Summoning");
-                this.CreatureMenuActivatedAbility = part.AbilityByGuid[this.CreatureMenuActivatedAbilityID];
-                this.SpawnTwohandedActivatedAbilityID = part.AddAbility("Spawn two-handed weapons", "CommandWeaponSpawnTwoHanded", "Summoning");
-                this.SpawnTwohandedActivatedAbility = part.AbilityByGuid[this.SpawnTwohandedActivatedAbilityID];
-                this.SpawnTwohandedActivatedAbility.Toggleable = true;
-                this.SpawnTwohandedActivatedAbility.ToggleState = false;
-                this.SpawnDualWeaponsActivatedAbilityID = part.AddAbility("Spawn dual weapons", "CommandWeaponSpawnDual", "Summoning");
-                this.SpawnDualWeaponsActivatedAbility = part.AbilityByGuid[this.SpawnDualWeaponsActivatedAbilityID];
-                this.SpawnDualWeaponsActivatedAbility.Toggleable = true;
-                this.SpawnDualWeaponsActivatedAbility.ToggleState = false;
+                SummonWeaponActivatedAbilityID = part.AddAbility("Summon weapon", "CommandSummonWeapon", "Summoning");
+                SummonWeaponActivatedAbility = part.AbilityByGuid[SummonWeaponActivatedAbilityID];
+                SummonCreatureActivatedAbilityID = part.AddAbility("Summon creature", "CommandSummonCreature", "Summoning");
+                SummonCreatureActivatedAbility = part.AbilityByGuid[SummonCreatureActivatedAbilityID];
+                WeaponMenuActivatedAbilityID = part.AddAbility("Choose weapon", "CommandWeaponMenu", "Summoning");
+                WeaponMenuActivatedAbility = part.AbilityByGuid[WeaponMenuActivatedAbilityID];
+                CreatureMenuActivatedAbilityID = part.AddAbility("Choose creature", "CommandCreatureMenu", "Summoning");
+                CreatureMenuActivatedAbility = part.AbilityByGuid[CreatureMenuActivatedAbilityID];
+                SpawnTwohandedActivatedAbilityID = part.AddAbility("Spawn two-handed weapons", "CommandWeaponSpawnTwoHanded", "Summoning");
+                SpawnTwohandedActivatedAbility = part.AbilityByGuid[SpawnTwohandedActivatedAbilityID];
+                SpawnTwohandedActivatedAbility.Toggleable = true;
+                SpawnTwohandedActivatedAbility.ToggleState = false;
+                SpawnDualWeaponsActivatedAbilityID = part.AddAbility("Spawn dual weapons", "CommandWeaponSpawnDual", "Summoning");
+                SpawnDualWeaponsActivatedAbility = part.AbilityByGuid[SpawnDualWeaponsActivatedAbilityID];
+                SpawnDualWeaponsActivatedAbility.Toggleable = true;
+                SpawnDualWeaponsActivatedAbility.ToggleState = false;
             }
-            this.ChangeLevel(Level);
+
+            ChangeLevel(Level);
+
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            if (this.SummonWeaponActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.SummonWeaponActivatedAbilityID);
-                this.SummonWeaponActivatedAbilityID = Guid.Empty;
-            }
-            if (this.SummonCreatureActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.SummonCreatureActivatedAbilityID);
-                this.SummonCreatureActivatedAbilityID = Guid.Empty;
-            }
-            if (this.WeaponMenuActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.WeaponMenuActivatedAbilityID);
-                this.WeaponMenuActivatedAbilityID = Guid.Empty;
-            }
-            if (this.CreatureMenuActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.CreatureMenuActivatedAbilityID);
-                this.CreatureMenuActivatedAbilityID = Guid.Empty;
-            }
-            if (this.SpawnTwohandedActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.SpawnTwohandedActivatedAbilityID);
-                this.SpawnTwohandedActivatedAbilityID = Guid.Empty;
-            }
-            if (this.SpawnDualWeaponsActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.SpawnDualWeaponsActivatedAbilityID);
-                this.SpawnDualWeaponsActivatedAbilityID = Guid.Empty;
-            }
+            RemoveMutationByGUID(GO, ref SummonWeaponActivatedAbilityID);
+            RemoveMutationByGUID(GO, ref SummonCreatureActivatedAbilityID);
+            RemoveMutationByGUID(GO, ref WeaponMenuActivatedAbilityID);
+            RemoveMutationByGUID(GO, ref CreatureMenuActivatedAbilityID);
+            RemoveMutationByGUID(GO, ref SpawnTwohandedActivatedAbilityID);
+            RemoveMutationByGUID(GO, ref SpawnDualWeaponsActivatedAbilityID);
+
             return base.Unmutate(GO);
         }
     }

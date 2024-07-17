@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
+using XRL;
+using XRL.World;
 using XRL.World.Parts;
-using XRL.Rules;
 
-namespace XRL.World.Parts.Effects
+namespace MoreMentalMutations.Effects
 {
     [Serializable]
     public class MMM_EffectPresence : Effect
@@ -16,57 +15,52 @@ namespace XRL.World.Parts.Effects
         public bool HostilesNearby = false;
         public int Radius = 7;
 
-        public MMM_EffectPresence()
+        public MMM_EffectPresence(int _Duration, int _Strength, GameObject _PresenceEmanator, int _ChanceToFlee, bool _HostilesNearby)
         {
-            this.DisplayName = "&oPresence";
-        }
-
-        public MMM_EffectPresence(int _Duration, int _Strength, GameObject _PresenceEmanator, int _ChanceToFlee, bool _HostilesNearby) : this()
-        {
-            this.DisplayName = "&oPresence";
-            this.Duration = _Duration;
-            this.Strength = _Strength;
-            this.PresenceEmanator = _PresenceEmanator;
-            this.ChanceToFlee = _ChanceToFlee;
-            this.HostilesNearby = _HostilesNearby;
+            DisplayName = "&oPresence";
+            Duration = _Duration;
+            Strength = _Strength;
+            PresenceEmanator = _PresenceEmanator;
+            ChanceToFlee = _ChanceToFlee;
+            HostilesNearby = _HostilesNearby;
         }
 
         public override string GetDetails()
         {
-            return (-this.Strength).ToString() + " to hostile/neutral to-hit/DV, " + (-this.Strength).ToString() + " to their willpower and willpower of friendly creatures if no hostiles are nearby. Friendly creatures get " + this.Strength.ToString() + " to their willpower/strength values" + " (" + this.Duration.ToString() + " turns left).";
+            return (-Strength).ToString() + " to hostile/neutral to-hit/DV, " + (-Strength).ToString() + " to their willpower and willpower of friendly creatures if no hostiles are nearby. Friendly creatures get " + Strength.ToString() + " to their willpower/strength values" + " (" + Duration.ToString() + " turns left).";
         }
 
         public override bool Apply(GameObject Object)
         {
-            GameObject.validate(ref this.PresenceEmanator);
+            GameObject.Validate(ref PresenceEmanator);
+
             return true;
         }
 
         public override void Remove(GameObject Object)
         {
-            GameObject.validate(ref this.PresenceEmanator);
-            PresenceEmanator = (GameObject)null;
+            GameObject.Validate(ref PresenceEmanator);
+            PresenceEmanator = null;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent((Effect)this, "EndTurn");
-            Object.RegisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
-        }
+            Object.RegisterEffectEvent(this, "EndTurn");
+            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
+            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
 
-        public override void Unregister(GameObject Object)
-        {
-            Object.UnregisterEffectEvent((Effect)this, "EndTurn");
-            Object.UnregisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.UnregisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
+            base.Register(Object, Registrar);
         }
 
         public override bool Render(RenderEvent E)
         {
-            if (this.Duration <= 0)
+            if (Duration <= 0)
+            {
                 return true;
+            }
+
             E.ColorString = "&O";
+
             return false;
         }
 
@@ -74,10 +68,11 @@ namespace XRL.World.Parts.Effects
         {
             if (E.ID == "EndTurn")
             {
-                if (GameObject.validate(ref this.PresenceEmanator) && this.PresenceEmanator != null)
+                if (GameObject.Validate(ref PresenceEmanator) && PresenceEmanator != null)
                 {
                     List<GameObject> Creatures = new List<GameObject>();
-                    Physics part = this.PresenceEmanator.GetPart("Physics") as Physics;
+                    Physics part = PresenceEmanator.GetPart<Physics>();
+
                     if (part != null && part.CurrentCell != null)
                     {
                         Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, Radius, "Combat");
@@ -85,23 +80,38 @@ namespace XRL.World.Parts.Effects
 
                     foreach (GameObject GO in Creatures)
                     {
-                        if (GO.HasPart("Brain") && GO.HasPart("Combat") && !GO.HasPart("MentalShield"))
+                        MMM_EffectUnderPresence underPresence = GO.GetEffect<MMM_EffectUnderPresence>();
+
+                        if (!GO.HasPart<Brain>() ||
+                            !GO.HasPart<Combat>() ||
+                            GO.HasPart<MentalShield>() ||
+                            GO == PresenceEmanator ||
+                            (underPresence != null && underPresence.PresenceEmanator == PresenceEmanator))
                         {
-                            if (GO != this.PresenceEmanator && !GO.HasEffect("MMM_EffectUnderPresence"))
-                            {
-                                GO.ApplyEffect((Effect)new MMM_EffectUnderPresence(this.PresenceEmanator, this.Strength, 2, this.ChanceToFlee, this.HostilesNearby));
-                            }
+                            continue;
                         }
+
+                        GO.ApplyEffect(new MMM_EffectUnderPresence(PresenceEmanator, Strength, 2, ChanceToFlee, HostilesNearby));
                     }
-                    --this.Duration;
+
+                    --Duration;
                 }
                 else
-                    this.Duration = 0;
+                {
+                    Duration = 0;
+                }
             }
+            
             if (E.ID == "BeforeDeepCopyWithoutEffects")
-                GameObject.validate(ref this.PresenceEmanator);
+            {
+                GameObject.Validate(ref PresenceEmanator);
+            }
+
             if (E.ID == "AfterDeepCopyWithoutEffects")
-                GameObject.validate(ref this.PresenceEmanator);
+            {
+                GameObject.Validate(ref PresenceEmanator);
+            }
+
             return base.FireEvent(E);
         }
     }

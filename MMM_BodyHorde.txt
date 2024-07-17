@@ -3,9 +3,9 @@ using System;
 
 namespace XRL.World.PartBuilders
 {
-    public class MMM_BodyHorde : IPartBuilder
+    public class BodyHorde : IPartBuilder
     {
-        public MMM_BodyHorde() 
+        public BodyHorde() 
             : base()
         {
         }

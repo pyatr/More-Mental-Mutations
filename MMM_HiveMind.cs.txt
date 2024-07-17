@@ -6,13 +6,16 @@ using XRL.Rules;
 using XRL.UI;
 using XRL.World.AI;
 using XRL.World.AI.GoalHandlers;
-using XRL.World.Parts.Effects;
+using XRL.World.Effects;
 using System.Collections.Generic;
+using XRL.World.Parts;
+using XRL.World;
+using XRL;
 
-namespace XRL.World.Parts.Mutation
+namespace  XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_HiveMind : BaseMutation
+    public class HiveMind : MMM_BaseMutation
     {
         //Stuff to do: add mentalshield to enthralled creatures
         public Guid IncorporateActivatedAbilityID = Guid.Empty;
@@ -42,7 +45,7 @@ namespace XRL.World.Parts.Mutation
 
         public List<GameObject> Targets = new List<GameObject>();
 
-        public MMM_HiveMind()
+        public HiveMind()
         {
             this.DisplayName = "Hive Mind";
             this.Type = "Mental";
@@ -75,7 +78,7 @@ namespace XRL.World.Parts.Mutation
         public void Pin()
         {
             this.Unpin();
-            this.pinnedZone = this.ParentObject.pPhysics.CurrentCell.ParentZone.ZoneID;
+            this.pinnedZone = this.ParentObject.Physics.CurrentCell.ParentZone.ZoneID;
             if (XRLCore.Core.Game.ZoneManager.PinnedZones.CleanContains<string>(this.pinnedZone))
                 return;
             XRLCore.Core.Game.ZoneManager.PinnedZones.Add(this.pinnedZone);
@@ -101,7 +104,7 @@ namespace XRL.World.Parts.Mutation
             {
                 if (this.ControlledObject != null)
                 {
-                    if (this.ControlledObject.pPhysics.CurrentCell != null && this.ControlledObject.pPhysics.CurrentCell.ParentZone.IsWorldMap())
+                    if (this.ControlledObject.Physics.CurrentCell != null && this.ControlledObject.Physics.CurrentCell.ParentZone.IsWorldMap())
                         this.ControlledObject.PullDown(false);
                     this.ControlledObject.RemoveEffect(ModManager.ResolveType("XRL.World.Parts.Mutation.Dominated"));
                     XRLCore.Core.Game.Player.Body = this.ParentObject;
@@ -122,7 +125,7 @@ namespace XRL.World.Parts.Mutation
                         {
                             if (GO != this.ParentObject && GO.Statistics.ContainsKey("Level"))
                             {
-                                if (GO.pBrain.PartyLeader == this.ParentObject && GO.HasEffect("MMM_EffectInHiveMind"))
+                                if (GO.pBrain.PartyLeader == this.ParentObject && GO.HasEffect("EffectInHiveMind"))
                                 {
                                     MessageQueue.AddPlayerMessage(GO.ShortDisplayName + " is already your drone.");
                                 }
@@ -140,15 +143,15 @@ namespace XRL.World.Parts.Mutation
                                     {
                                         if (this.ParentObject.IsPlayer())
                                         {
-                                            if (!GO.HasEffect("MMM_EffectInHiveMind"))
+                                            if (!GO.HasEffect("EffectInHiveMind"))
                                                 MessageQueue.AddPlayerMessage(GO.ShortDisplayName + " joins your consciousness.");
                                             else if (GO.pBrain.PartyLeader != this.ParentObject)
                                                 MessageQueue.AddPlayerMessage("You steal " + GO.ShortDisplayName + " from " + GO.pBrain.PartyLeader.ShortDisplayName + ".");
                                         }
                                         for (int index = 0; index < 0; ++index)//This looks dumb
                                         {
-                                            int x = this.ParentObject.pPhysics.CurrentCell.X;
-                                            int y = this.ParentObject.pPhysics.CurrentCell.Y;
+                                            int x = this.ParentObject.Physics.CurrentCell.X;
+                                            int y = this.ParentObject.Physics.CurrentCell.Y;
                                             ParticleManager particleManager = XRLCore.ParticleManager;
                                             particleManager.AddSinusoidal("&M~", (float)x, (float)y, 1.5f * (float)Stat.Random(1, 6), 0.1f * (float)Stat.Random(1, 60), (float)(0.100000001490116 + 0.025000000372529 * (double)Stat.Random(0, 4)), 1f, 0.0f, 0.0f, (float)(-0.100000001490116 - 0.0500000007450581 * (double)Stat.Random(1, 6)), 999);
                                             particleManager.AddSinusoidal("&Y~", (float)x, (float)y, 1.5f * (float)Stat.Random(1, 6), 0.1f * (float)Stat.Random(1, 60), (float)(0.100000001490116 + 0.025000000372529 * (double)Stat.Random(0, 4)), 1f, 0.0f, 0.0f, (float)(-0.100000001490116 - 0.0500000007450581 * (double)Stat.Random(1, 6)), 999);
@@ -159,7 +162,7 @@ namespace XRL.World.Parts.Mutation
                                             GO.pBrain.PartyLeader = (GameObject)null;
                                         part.BecomeCompanionOf(this.ParentObject);
                                         part.AdjustFeeling(this.ParentObject, 1000);
-                                        GO.ApplyEffect((Effect)new MMM_EffectInHiveMind(this.ParentObject));
+                                        GO.ApplyEffect((Effect)new EffectInHiveMind(this.ParentObject));
                                         this.Targets.Add(GO);
                                         this.ParentObject.UseEnergy(1000, "Mental Mutation");
                                     }
@@ -186,7 +189,7 @@ namespace XRL.World.Parts.Mutation
                 GameObject GO3 = (GameObject)null;
                 foreach (GameObject GO2 in C.GetObjectsInCell())
                 {
-                    if (GO2.HasEffect("MMM_EffectInHiveMind"))
+                    if (GO2.HasEffect("EffectInHiveMind"))
                     {
                         if (GO2.pBrain.PartyLeader == this.ParentObject)//So you don't take over someone elses drone
                         {
@@ -243,7 +246,7 @@ namespace XRL.World.Parts.Mutation
                     {
                         Brain part = GO7.GetPart("Brain") as Brain;
                         part.Goals.Clear();
-                        part.PushGoal((GoalHandler)new MoveTo(this.ParentObject.pPhysics.CurrentCell.ParentZone.ZoneID, C.X, C.Y, false));
+                        part.PushGoal((GoalHandler)new MoveTo(this.ParentObject.Physics.CurrentCell.ParentZone.ZoneID, C.X, C.Y, false));
                     }
                 }*/                
                 return true;

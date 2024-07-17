@@ -3,9 +3,9 @@ using System;
 
 namespace XRL.World.PartBuilders
 {
-    public class MMM_BodyTriped : IPartBuilder
+    public class BodyTriped : IPartBuilder
     {
-        public MMM_BodyTriped() 
+        public BodyTriped() 
             : base()
         {
         }

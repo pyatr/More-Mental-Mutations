@@ -6,14 +6,16 @@ using XRL.World.Parts;
 using XRL.World.AI;
 using XRL.World.AI.GoalHandlers;
 
-namespace XRL.World.Parts.Effects
+using XRL.World.Parts;
+
+namespace MoreMentalMutations.Effects
 {
     [Serializable]
     public class MMM_EffectInHiveMind : Effect
     {
         public GameObject Master = (GameObject)null;
 
-        public MMM_EffectInHiveMind(GameObject Master)
+        public EffectInHiveMind(GameObject Master)
         {
             this.Master = Master;
             this.DisplayName = "&rIn a hive mind";

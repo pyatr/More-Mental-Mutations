@@ -1,28 +1,25 @@
 using System;
-using System.Collections.Generic;
-using XRL.Messages;
-using XRL.UI;
-using XRL.World;
-using XRL.World.Parts;
-using XRL.World.Parts.Effects;
+using MoreMentalMutations.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_GravityField : BaseMutation
+    public class MMM_GravityField : MMM_BaseMutation
     {
         public Guid GravityFieldActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry GravityFieldActivatedAbility;
 
         public MMM_GravityField()
         {
-            this.DisplayName = "Gravity Field";
-            this.Type = "Mental";
+            DisplayName = "Gravity Field";
+            Type = "Mental";
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "CommandGravityField");
+            Object.RegisterPartEvent(this, "CommandGravityField");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
@@ -48,16 +45,16 @@ namespace XRL.World.Parts.Mutation
         {
             if (E.ID == "CommandGravityField")
             {
-                if (!this.ParentObject.HasEffect("MMM_EffectGravityField"))
+                if (!ParentObject.HasEffect("EffectGravityField"))
                 {
-                    this.ParentObject.ApplyEffect(
-                        (Effect)new MMM_EffectGravityField(this.Level, 20 + this.Level * 2)
-                    );
-                    this.ParentObject.UseEnergy(1000);
-                    this.GravityFieldActivatedAbility.Cooldown = 1240 - 30 * this.Level;
+                    ParentObject.ApplyEffect(new MMM_EffectGravityField(Level, 20 + Level * 2));
+                    ParentObject.UseEnergy(1000);
+                    GravityFieldActivatedAbility.Cooldown = 1240 - 30 * Level;
                 }
+
                 return true;
             }
+
             return base.FireEvent(E);
         }
 
@@ -68,31 +65,23 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
+            ActivatedAbilities part = GetActivatedAbilities(GO);
+
             if (part != null)
             {
-                this.GravityFieldActivatedAbilityID = part.AddAbility(
-                    "Gravity field",
-                    "CommandGravityField",
-                    "Mental Mutation"
-                );
-                this.GravityFieldActivatedAbility = part.AbilityByGuid[
-                    this.GravityFieldActivatedAbilityID
-                ];
+                GravityFieldActivatedAbilityID = part.AddAbility("Gravity field", "CommandGravityField", "Mental Mutation");
+                GravityFieldActivatedAbility = part.AbilityByGuid[GravityFieldActivatedAbilityID];
             }
-            this.ChangeLevel(Level);
+
+            ChangeLevel(Level);
+
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            if (this.GravityFieldActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(
-                    this.GravityFieldActivatedAbilityID
-                );
-                this.GravityFieldActivatedAbilityID = Guid.Empty;
-            }
+            RemoveMutationByGUID(GO, ref GravityFieldActivatedAbilityID);
+
             return base.Unmutate(GO);
         }
     }

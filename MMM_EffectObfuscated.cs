@@ -1,115 +1,107 @@
 using System;
 using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
+using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
-using XRL.World.AI;
-using XRL.World.AI.GoalHandlers;
+using XRL.World;
+using XRL;
 
-namespace XRL.World.Parts.Effects
+namespace MoreMentalMutations.Effects
 {
     [Serializable]
-    public class MMM_EffectObfuscated : Effect
+    public class EffectObfuscated : Effect
     {
         public GameObject HiddenObject;
+        public new string DisplayName = "&cobfuscated";
 
-        public MMM_EffectObfuscated()
+        public EffectObfuscated(int _Duration, GameObject _HiddenObject)
         {
-            this.DisplayName = "&cobfuscated";
-        }
-
-        public MMM_EffectObfuscated(int _Duration, GameObject _HiddenObject) : this()
-        {            
-            this.Duration = _Duration;
-            this.HiddenObject = _HiddenObject;
+            Duration = _Duration;
+            HiddenObject = _HiddenObject;
         }
 
         public override string GetDetails()
         {
-            return "Creatures with mind ignore you. (" + this.Duration.ToString() + " turns left).";
+            return "Creatures with mind ignore you. (" + Duration.ToString() + " turns left).";
         }
-		
-		public bool IsTargetViable(GameObject c)
-		{
-			return c.HasPart("Brain") && c.HasPart("Combat") && !c.HasPart("MentalShield") && !c.HasPart("Clairvoyance");			
-		}
+
+        public bool IsTargetViable(GameObject c)
+        {
+            return c.HasPart<Brain>() && c.HasPart<Combat>() && !c.HasPart<MentalShield>() && !c.HasPart<Clairvoyance>();
+        }
 
         public override bool Apply(GameObject Object)
         {
-            this.Obfuscate();
+            Obfuscate();
+
             return true;
         }
 
         public override void Remove(GameObject Object)
         {
-            this.Unobfuscate();
+            Unobfuscate();
         }
 
         public void Obfuscate()
         {
-            GameObject.validate(ref this.HiddenObject);
-            if (!this.HiddenObject.IsPlayer())
+            GameObject.Validate(ref HiddenObject);
+
+            if (!HiddenObject.IsPlayer())
             {
-                this.HiddenObject.pRender.Visible = false;
+                HiddenObject.Render.Visible = false;
             }
         }
 
         public void Unobfuscate()
         {
-            GameObject.validate(ref this.HiddenObject);
+            GameObject.Validate(ref HiddenObject);
             List<GameObject> Creatures = new List<GameObject>(10);
-            Physics part = this.HiddenObject.GetPart("Physics") as Physics;
-            if (part != null && part.CurrentCell != null)
+            Physics hiddenObjectPhysics = HiddenObject.Physics;
+
+            if (hiddenObjectPhysics != null && hiddenObjectPhysics.CurrentCell != null)
             {
-                Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, 80, "Combat");
+                Creatures = hiddenObjectPhysics.CurrentCell.ParentZone.FastSquareSearch(hiddenObjectPhysics.CurrentCell.X, hiddenObjectPhysics.CurrentCell.Y, 80, "Combat");
             }
 
-            if (!this.HiddenObject.IsPlayer())
+            if (!HiddenObject.IsPlayer())
             {
-                this.HiddenObject.pRender.Visible = true;
+                HiddenObject.Render.Visible = true;
             }
 
             foreach (GameObject GO in Creatures)
             {
-                if (GO.HasEffect("MMM_EffectIgnoreObject"))
+                if (GO.HasEffect("EffectIgnoreObject"))
                 {
-                    GO.RemoveEffect("MMM_EffectIgnoreObject");
+                    GO.RemoveEffect<MMM_EffectIgnoreObject>();
                 }
             }
-            this.HiddenObject = (GameObject)null;
+
+            HiddenObject = null;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent((Effect)this, "EndTurn");
-            Object.RegisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
+            Object.RegisterEffectEvent(this, "EndTurn");
+            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
+            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
             //Object.RegisterEffectEvent((Effect)this, "BeginAttack");
-            Object.RegisterEffectEvent((Effect)this, "BeginConversation");
-            Object.RegisterEffectEvent((Effect)this, "BeginTakeAction");
-            Object.RegisterEffectEvent((Effect)this, "MeleeAttackWithWeapon");
-            Object.RegisterEffectEvent((Effect)this, "FiredMissileWeapon");
-            Object.RegisterEffectEvent((Effect)this, "CommandThrowWeapon");
-        }
+            Object.RegisterEffectEvent(this, "BeginConversation");
+            Object.RegisterEffectEvent(this, "BeginTakeAction");
+            Object.RegisterEffectEvent(this, "MeleeAttackWithWeapon");
+            Object.RegisterEffectEvent(this, "FiredMissileWeapon");
+            Object.RegisterEffectEvent(this, "CommandThrowWeapon");
 
-        public override void Unregister(GameObject Object)
-        {
-            Object.UnregisterEffectEvent((Effect)this, "EndTurn");
-            Object.UnregisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.UnregisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
-            //Object.UnregisterEffectEvent((Effect)this, "BeginAttack");
-            Object.UnregisterEffectEvent((Effect)this, "BeginConversation");
-            Object.UnregisterEffectEvent((Effect)this, "BeginTakeAction");
-            Object.UnregisterEffectEvent((Effect)this, "MeleeAttackWithWeapon");
-            Object.UnregisterEffectEvent((Effect)this, "FiredMissileWeapon");
-            Object.UnregisterEffectEvent((Effect)this, "CommandThrowWeapon");
+            base.Register(Object, Registrar);
         }
 
         public override bool Render(RenderEvent E)
         {
-            if (this.Duration <= 0)
+            if (Duration <= 0)
+            {
                 return true;
-            E.ColorString = "&c";           
+            }
+
+            E.ColorString = "&c";
+
             return false;
         }
 
@@ -121,7 +113,7 @@ namespace XRL.World.Parts.Effects
                      return true;
                  GameObject Defender = E.GetParameter("Defender") as GameObject;
                  GameObject Weapon = E.GetParameter("Weapon") as GameObject;
-                 if (Defender.HasEffect("MMM_EffectIgnoreObject"))
+                 if (Defender.HasEffect("EffectIgnoreObject"))
                  {
                      //this.Object.ParticleText("Defend yourself, " + Defender.DisplayName);
                      Event E1 = Event.New("MeleeAttackWithWeapon", 0, 0, 0);
@@ -135,52 +127,73 @@ namespace XRL.World.Parts.Effects
                  }
                  return true;
              }*/
+
             if (E.ID == "BeginConversation")
             {
-                this.Duration = 0;
-                this.Object.UseEnergy(1000);
+                Duration = 0;
+                Object.UseEnergy(1000);
+
                 return false;
             }
+
             if (E.ID == "BeginTakeAction")
             {
-                if (!GameObject.validate(ref this.HiddenObject))
-                    this.Duration = 0;
-                if (this.Duration > 0)
+                if (!GameObject.Validate(ref HiddenObject))
                 {
-                    Physics part = this.HiddenObject.GetPart("Physics") as Physics;
+                    Duration = 0;
+                }
+
+                if (Duration > 0)
+                {
+                    Physics hiddenObjectPhysics = HiddenObject.Physics;
                     List<GameObject> Creatures = new List<GameObject>(10);
-                    if (part != null && part.CurrentCell != null)
+
+                    if (hiddenObjectPhysics != null && hiddenObjectPhysics.CurrentCell != null)
                     {
-                        Creatures = part.CurrentCell.ParentZone.FastSquareSearch(part.CurrentCell.X, part.CurrentCell.Y, 80, "Combat");
+                        Creatures = hiddenObjectPhysics.CurrentCell.ParentZone.FastSquareSearch(hiddenObjectPhysics.CurrentCell.X, hiddenObjectPhysics.CurrentCell.Y, 80, "Combat");
                     }
+
                     foreach (GameObject c in Creatures)
                     {
                         if (IsTargetViable(c))
                         {
-                            if (c != this.HiddenObject && !c.HasEffect("MMM_EffectIgnoreObject"))
+                            if (c != HiddenObject && !c.HasEffect("EffectIgnoreObject"))
                             {
-                                c.ApplyEffect((Effect)new MMM_EffectIgnoreObject(this.HiddenObject, this.Duration));
+                                c.ApplyEffect(new MMM_EffectIgnoreObject(HiddenObject, Duration));
                             }
                         }
                     }
                 }
+
                 return true;
             }
+
             if (E.ID == "MeleeAttackWithWeapon" || E.ID == "FiredMissileWeapon" || E.ID == "CommandThrowWeapon")
             {
-                this.Duration = 0;
+                Duration = 0;
                 return true;
             }
+
             if (E.ID == "EndTurn")
             {
-                if (this.Duration > 0)                                   
-                    --this.Duration;
+                if (Duration > 0)
+                {
+                    --Duration;
+                }
+
                 return true;
             }
+
             if (E.ID == "BeforeDeepCopyWithoutEffects")
-                this.Unobfuscate();
+            {
+                Unobfuscate();
+            }
+
             if (E.ID == "AfterDeepCopyWithoutEffects")
-                this.Obfuscate();
+            {
+                Obfuscate();
+            }
+
             return base.FireEvent(E);
         }
     }

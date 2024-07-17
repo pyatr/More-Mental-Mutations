@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using XRL.Core;
-using XRL.Messages;
 using XRL.UI;
 using XRL.Rules;
-using XRL.World;
-using XRL.World.Parts;
 using ConsoleLib.Console;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_Vicissitude : BaseMutation
+    public class MMM_Vicissitude : MMM_BaseMutation
     {
         public Guid DisassembleActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry DisassembleActivatedAbility;
@@ -21,12 +17,12 @@ namespace XRL.World.Parts.Mutation
 
         public MMM_Vicissitude()
         {
-            this.DisplayName = "Vicissitude";
-            BodyParts.Add("MMM_Bones");
-            BodyParts.Add("MMM_Sinew");
-            BodyParts.Add("MMM_Muscle");
-            BodyParts.Add("MMM_Nerve");
-            BodyParts.Add("MMM_Skin");
+            DisplayName = "Vicissitude";
+            BodyParts.Add("Bones");
+            BodyParts.Add("Sinew");
+            BodyParts.Add("Muscle");
+            BodyParts.Add("Nerve");
+            BodyParts.Add("Skin");
         }
 
         public static GameObject Menu(string Title, Dictionary<string, GameObject> Dic)
@@ -49,11 +45,11 @@ namespace XRL.World.Parts.Mutation
                 for (i = 0; i <= max + 2; i++)
                     emptyline += " ";
 
-                scrapBuffer1.SingleBox(40 - (2 + max / 2) - 1, 12 - (1 + Dic.Count / 2) - 1, 40 + (2 + max / 2) + 1, 12 + (0 + Dic.Count / 2 + Dic.Count % 2) + 1, ColorUtility.MakeColor(TextColor.Grey, TextColor.Black));
+                scrapBuffer1.SingleBox(40 - (2 + max / 2) - 1, 12 - (1 + Dic.Count / 2) - 1, 40 + 2 + max / 2 + 1, 12 + 0 + Dic.Count / 2 + Dic.Count % 2 + 1, ColorUtility.MakeColor(TextColor.Grey, TextColor.Black));
 
                 scrapBuffer1.Goto(40 - (2 + max / 2), 12 - (1 + Dic.Count / 2));
                 scrapBuffer1.Write(emptyline);
-                scrapBuffer1.Goto(40 - (2 + max / 2), 12 + (1 + Dic.Count / 2) + 2);
+                scrapBuffer1.Goto(40 - (2 + max / 2), 12 + 1 + Dic.Count / 2 + 2);
                 scrapBuffer1.Write(emptyline);
 
                 string actualtitle = "[";
@@ -76,7 +72,7 @@ namespace XRL.World.Parts.Mutation
                         scrapBuffer1.Write(emptyline);
                         scrapBuffer1.Goto(40 - (2 + max / 2) + 1, 12 - (1 + Dic.Count / 2) + i + 1);
                         scrapBuffer1.Write(line);
-                        Popup._TextConsole.DrawBuffer(scrapBuffer1, (IScreenBufferExtra)null, false);
+                        Popup._TextConsole.DrawBuffer(scrapBuffer1, null, false);
                     }
                     keys = Keyboard.getvk(Options.GetOption("OptionMapDirectionsToKeypad", string.Empty) == "Yes", true);
                     if (keys == Keys.Enter || keys == Keys.Space)
@@ -99,12 +95,14 @@ namespace XRL.World.Parts.Mutation
                 }
                 return Dic.Values.ElementAt(MenuPosition);
             }
-            else return (GameObject) null;
+            else return null;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "CommandTakeCorpseApart");
+            Object.RegisterPartEvent(this, "CommandTakeCorpseApart");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
@@ -121,12 +119,12 @@ namespace XRL.World.Parts.Mutation
         {
             if (E.ID == "CommandTakeCorpseApart")
             {
-                Inventory inventory = this.ParentObject.GetPart<Inventory>();
+                Inventory inventory = ParentObject.GetPart<Inventory>();
                 Dictionary<string, GameObject> Corpses = new Dictionary<string, GameObject>();
 
                 foreach (GameObject GO in inventory.GetObjects())
                 {
-                    if (GO.pPhysics.Category == "Corpse")
+                    if (GO.Physics.Category == "Corpse")
                     {
                         Corpses.Add(GO.DisplayName, GO);
                     }
@@ -140,21 +138,21 @@ namespace XRL.World.Parts.Mutation
 
                         if (body.DisplayName.Contains("amoeba"))
                         {
-                            Popup.Show("There is nothing valuable in that body", false);
+                            Popup.Show("There is nothing valuable in that body");
                             return true;
                         }
 
                         if (body.DisplayName.Contains(" head "))
                         {
-                            this.ParentObject.GetPart<Inventory>().AddObject("MMM_Brain", true);
+                            ParentObject.GetPart<Inventory>().AddObject("Brain", true);
                             i = Stat.Random(1, 32);
                             if (i < 7)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Nerve", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Nerve", true);
                             if (i < 14)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Nerve", true);
-                            this.ParentObject.FlingBlood();
+                                ParentObject.GetPart<Inventory>().AddObject("Nerve", true);
+                            ParentObject.FlingBlood();
                             body.Destroy();
-                            this.ParentObject.UseEnergy(1000, "Physical");
+                            ParentObject.UseEnergy(1000, "Physical");
                             return true;
                         }
 
@@ -162,42 +160,42 @@ namespace XRL.World.Parts.Mutation
                         {
                             i = Stat.Random(1, 32);
                             if (i < 9)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Bones", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Bones", true);
                             else if (i >= 9 && i < 16)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Skin", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Skin", true);
                             else if (i >= 16 && i < 25)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Muscle", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Muscle", true);
                             else
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Sinew", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Sinew", true);
 
-                            this.ParentObject.FlingBlood();
+                            ParentObject.FlingBlood();
                             body.Destroy();
-                            this.ParentObject.UseEnergy(1000, "Physical");
+                            ParentObject.UseEnergy(1000, "Physical");
                             return true;
                         }
 
                         bool BrainAdded = false;
-                        for (int j = 5; j < body.pPhysics.Weight; j += 25 - this.Level)
+                        for (int j = 5; j < body.Physics.Weight; j += 25 - Level)
                         {
-                            this.ParentObject.FlingBlood();
-                                
-                            this.ParentObject.UseEnergy(1000, "Physical");
+                            ParentObject.FlingBlood();
+
+                            ParentObject.UseEnergy(1000, "Physical");
                             i = Stat.Random(0, 39);
                             if (i == 0 && BrainAdded == false)
                             {
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Brain", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Brain", true);
                                 BrainAdded = true;
                             }
                             else if (i < 9 && i > 0)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Bones", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Bones", true);
                             else if (i >= 9 && i < 16)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Skin", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Skin", true);
                             else if (i >= 16 && i < 27)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Muscle", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Muscle", true);
                             else if (i >= 27 && i < 34)
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Sinew", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Sinew", true);
                             else
-                                this.ParentObject.GetPart<Inventory>().AddObject("MMM_Nerve", true);
+                                ParentObject.GetPart<Inventory>().AddObject("Nerve", true);
                         }
                         body.Destroy();
                         return true;
@@ -219,23 +217,23 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
+            ActivatedAbilities part = GetActivatedAbilities(GO);
+
             if (part != null)
             {
-                this.DisassembleActivatedAbilityID = part.AddAbility("Disassemble body", "CommandTakeCorpseApart", "Vicissitude");
-                this.DisassembleActivatedAbility = part.AbilityByGuid[this.DisassembleActivatedAbilityID];
+                DisassembleActivatedAbilityID = part.AddAbility("Disassemble body", "CommandTakeCorpseApart", "Vicissitude");
+                DisassembleActivatedAbility = part.AbilityByGuid[DisassembleActivatedAbilityID];
             }
-            this.ChangeLevel(Level);
+
+            ChangeLevel(Level);
+
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            if (this.DisassembleActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.DisassembleActivatedAbilityID);
-                this.DisassembleActivatedAbilityID = Guid.Empty;
-            }
+            RemoveMutationByGUID(GO, ref DisassembleActivatedAbilityID);
+
             return base.Unmutate(GO);
         }
     }

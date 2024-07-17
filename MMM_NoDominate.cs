@@ -1,7 +1,8 @@
 using System;
-using XRL.World.Parts.Effects;
+using XRL;
+using XRL.World;
 
-namespace XRL.World.Parts
+namespace MoreMentalMutations.Parts
 {
     [Serializable]
     public class MMM_NoDominate : IPart
@@ -16,9 +17,11 @@ namespace XRL.World.Parts
             return true;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Object.RegisterPartEvent(this, "ApplyDomination");
+
+            base.Register(Object, Registrar);
         }
 
         public override bool FireEvent(Event E)

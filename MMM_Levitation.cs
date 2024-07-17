@@ -3,22 +3,20 @@ using System.Text;
 using XRL.UI;
 using XRL.World.Capabilities;
 using XRL.Messages;
-using XRL.Rules;
 using XRL.World.Effects;
-using XRL.World.Parts;
-using XRL.World.Parts.Effects;
+using MoreMentalMutations.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_Levitation : BaseMutation, IFlightSource
+    public class MMM_Levitation : MMM_BaseMutation, IFlightSource
     {
         private int BASE_FLIGHT_DURATION = 20;
         private int ADDITIONAL_TURNS_PER_LEVEL = 3;
 
-        public int Duration => this.Level * ADDITIONAL_TURNS_PER_LEVEL + BASE_FLIGHT_DURATION;
-        public int FlightLevel => this.Level;
-        public int FlightBaseFallChance => this.BaseFallChance;
+        public int Duration => Level * ADDITIONAL_TURNS_PER_LEVEL + BASE_FLIGHT_DURATION;
+        public int FlightLevel => Level;
+        public int FlightBaseFallChance => BaseFallChance;
 
         public bool FlightRequiresOngoingEffort => true;
         public string FlightEvent => "CommandFlight";
@@ -29,11 +27,11 @@ namespace XRL.World.Parts.Mutation
         {
             set
             {
-                this._FlightFlying = value;
+                _FlightFlying = value;
             }
             get
             {
-                return this._FlightFlying;
+                return _FlightFlying;
             }
         }
 
@@ -41,11 +39,11 @@ namespace XRL.World.Parts.Mutation
         {
             set
             {
-                this._FlightActivatedAbilityID = value;
+                _FlightActivatedAbilityID = value;
             }
             get
             {
-                return this._FlightActivatedAbilityID;
+                return _FlightActivatedAbilityID;
             }
         }
 
@@ -56,13 +54,12 @@ namespace XRL.World.Parts.Mutation
 
         public override IPart DeepCopy(GameObject Parent)
         {
-            MMM_Levitation MMM_Levitation = base.DeepCopy(Parent) as MMM_Levitation;
-            return (IPart)MMM_Levitation;
+            return base.DeepCopy(Parent) as MMM_Levitation;
         }
 
         public MMM_Levitation()
         {
-            this.DisplayName = "Levitation";
+            DisplayName = "Levitation";
         }
 
         public override bool GeneratesEquipment()
@@ -83,15 +80,16 @@ namespace XRL.World.Parts.Mutation
             return true;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "AIGetOffensiveMutationList");
-            Object.RegisterPartEvent((IPart)this, "AIGetPassiveMutationList");
-            Object.RegisterPartEvent((IPart)this, "BeginTakeAction");
-            Object.RegisterPartEvent((IPart)this, "EndTurn");
-            Object.RegisterPartEvent((IPart)this, "EnteredCell");
-            Object.RegisterPartEvent((IPart)this, "CommandFlight");
-            base.Register(Object);
+            Object.RegisterPartEvent(this, "AIGetOffensiveMutationList");
+            Object.RegisterPartEvent(this, "AIGetPassiveMutationList");
+            Object.RegisterPartEvent(this, "BeginTakeAction");
+            Object.RegisterPartEvent(this, "EndTurn");
+            Object.RegisterPartEvent(this, "EnteredCell");
+            Object.RegisterPartEvent(this, "CommandFlight");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
@@ -101,7 +99,7 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetLevelText(int Level)
         {
-            StringBuilder stringBuilder = Event.NewStringBuilder((string)null);
+            StringBuilder stringBuilder = Event.NewStringBuilder();
             stringBuilder.Append($"You may levitate outside and underground for {Duration} turns (you cannot be hit in melee by grounded creatures while levitating). You may not levitate while travelling.\n Cooldown: {Cooldown}\n");
             return stringBuilder.ToString();
         }
@@ -112,21 +110,23 @@ namespace XRL.World.Parts.Mutation
                 return false;
             if (!Object.CanChangeMovementMode("Flying", true, false, false))
                 return false;
-            if (Object.GetEffectCount("Flying") == 0)
+            if (Object.GetEffectCount(typeof(Flying)) == 0)
             {
                 if (Object.IsPlayer())
                     MessageQueue.AddPlayerMessage("You begin levitating!", 'g');
                 else if (Object.IsVisible())
                     MessageQueue.AddPlayerMessage(Object.The + Object.ShortDisplayName + Object.GetVerb("begin", true, false) + " levitating.");
-                Object.ApplyEffect((Effect)new MMM_EffectLevitation(Duration, this.ParentObject));
+                Object.ApplyEffect(new MMM_EffectLevitation(Duration, ParentObject));
                 Object.MovementModeChanged("Flying", false);
             }
             else if (Object.IsPlayer())
+            {
                 MessageQueue.AddPlayerMessage("You cannot levitate and fly at the same time.", 'g');
+            }
 
             FS.FlightFlying = true;
-            Object.ApplyEffect((Effect)new Flying(FS.FlightLevel, Source), (GameObject)null);
-            Object.RemoveEffect("Prone", false);
+            Object.ApplyEffect(new Flying(FS.FlightLevel, Source), null);
+            Object.RemoveEffect<Prone>();
             Object.ToggleActivatedAbility(FS.FlightActivatedAbilityID);
             Object.FireEvent("FlightStarted");
             ObjectStartedFlyingEvent.SendFor(Object);
@@ -135,75 +135,83 @@ namespace XRL.World.Parts.Mutation
 
         public void StopFlying()
         {
-            if (this.ParentObject.HasEffect("MMM_EffectLevitation"))
-                this.ParentObject.RemoveEffect("MMM_EffectLevitation");
-            Flight.StopFlying(this.ParentObject, this.ParentObject, (IFlightSource)this, false, false);
+            if (ParentObject.HasEffect("EffectLevitation"))
+            {
+                ParentObject.RemoveEffect(typeof(MMM_EffectLevitation));
+            }
+
+            Flight.StopFlying(ParentObject, ParentObject, this, false, false);
         }
 
         public override bool FireEvent(Event E)
         {
-            //if (E.ID == "EndTurn")
-            //    Flight.MaintainFlight(this.ParentObject, this.ParentObject, (IFlightSource)this);
             if (E.ID == "BeginTakeAction")
             {
-                if (this.ParentObject.OnWorldMap())
-                    Flight.StopFlying(this.ParentObject, this.ParentObject, (IFlightSource)this, true, false);
+                if (ParentObject.OnWorldMap())
+                    Flight.StopFlying(ParentObject, ParentObject, this, true, false);
             }
             else if (E.ID == "EnteredCell")
             {
-                Flight.CheckFlight(this.ParentObject, this.ParentObject, (IFlightSource)this);
+                Flight.CheckFlight(ParentObject, ParentObject, this);
             }
             else if (E.ID == "CommandFlight")
             {
-                if (!this.ParentObject.OnWorldMap())
+                if (!ParentObject.OnWorldMap())
                 {
-                    if (this.IsMyActivatedAbilityToggledOn(this.FlightActivatedAbilityID, (GameObject)null))
+                    if (IsMyActivatedAbilityToggledOn(FlightActivatedAbilityID, null))
                     {
-                        if (this.ParentObject.IsPlayer() && this.currentCell != null && this.ParentObject.GetEffectCount("MMM_EffectLevitation") <= 1)
+                        if (ParentObject.IsPlayer() && currentCell != null && ParentObject.GetEffectCount(typeof(MMM_EffectLevitation)) <= 1)
                         {
                             int index = 0;
-                            for (int count = this.currentCell.Objects.Count; index < count; ++index)
+                            for (int count = currentCell.Objects.Count; index < count; ++index)
                             {
-                                GameObject gameObject = this.currentCell.Objects[index];
-                                StairsDown part = gameObject.GetPart("StairsDown") as StairsDown;
+                                GameObject gameObject = currentCell.Objects[index];
+                                StairsDown part = gameObject.GetPart<StairsDown>();
+
                                 if (part != null && part.IsLongFall() && Popup.ShowYesNo("It looks like a long way down " + gameObject.the + gameObject.ShortDisplayName + " you're above. Are you sure you want to stop levitating?", true, DialogResult.Yes) != DialogResult.Yes)
+                                {
                                     return false;
+                                }
                             }
                         }
-                        this.StopFlying();
+                        StopFlying();
                     }
                     else
                     {
-                        if (!this.ParentObject.HasEffect("MMM_EffectLevitation"))
+                        if (!ParentObject.HasEffect("EffectLevitation"))
                         {
-                            this.ParentObject.CooldownActivatedAbility(((IFlightSource)this).FlightActivatedAbilityID, Cooldown, (string)null);
-                            this.ParentObject.UseEnergy(1000, "Mental");
-                            this.StartFlyingAnywhere(this.ParentObject, this.ParentObject, (IFlightSource)this);
+                            ParentObject.CooldownActivatedAbility(((IFlightSource)this).FlightActivatedAbilityID, Cooldown, null);
+                            ParentObject.UseEnergy(1000, "Mental");
+                            StartFlyingAnywhere(ParentObject, ParentObject, this);
                         }
-                        else
+                        else if (ParentObject.IsPlayer())
                         {
-                            if (this.ParentObject.IsPlayer())
-                                Popup.Show("You already are levitating", false);
+                            Popup.Show("You already are levitating");
                         }
                     }
                 }
-                else
+                else if (ParentObject.IsPlayer())
                 {
-                    if (this.ParentObject.IsPlayer())
-                        Popup.Show("You can't fly on world map", false);
+                    Popup.Show("You can't fly on world map");
                 }
             }
             else if (E.ID == "AIGetOffensiveMutationList" || E.ID == "AIGetPassiveMutationList")
             {
-                if (!this.FlightFlying/* && Flight.EnvironmentAllowsFlight(this.ParentObject)*/ && Flight.IsAbilityAIUsable((IFlightSource)this, this.ParentObject))
-                    E.AddAICommand(this.FlightEvent, 1, (GameObject)null, false);
+                if (!FlightFlying/* && Flight.EnvironmentAllowsFlight(this.ParentObject)*/ && Flight.IsAbilityAIUsable(this, ParentObject))
+                {
+                    E.AddAICommand(FlightEvent, 1, null, false);
+                }
             }
-            else if ((E.ID == "MovementModeChanged" || E.ID == "BodyPositionChanged") && this.FlightFlying)
+            else if ((E.ID == "MovementModeChanged" || E.ID == "BodyPositionChanged") && FlightFlying)
             {
                 if (E.HasFlag("Involuntary"))
-                    Flight.FailFlying(this.ParentObject, this.ParentObject, (IFlightSource)this);
+                {
+                    Flight.FailFlying(ParentObject, ParentObject, this);
+                }
                 else
-                    Flight.StopFlying(this.ParentObject, this.ParentObject, (IFlightSource)this, false, false);
+                {
+                    Flight.StopFlying(ParentObject, ParentObject, this, false, false);
+                }
             }
             return base.FireEvent(E);
         }
@@ -215,14 +223,14 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            this.ChangeLevel(Level);
-            Flight.AbilitySetup(GO, GO, (IFlightSource)this);
+            ChangeLevel(Level);
+            Flight.AbilitySetup(GO, GO, this);
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            Flight.AbilityTeardown(GO, GO, (IFlightSource)this);
+            Flight.AbilityTeardown(GO, GO, this);
             return base.Unmutate(GO);
         }
     }

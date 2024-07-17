@@ -1,18 +1,12 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
-using XRL.World;
-using XRL.World.Parts;
-using XRL.Liquids;
-using XRL.Rules;
 using XRL.Messages;
-using XRL.UI;
-using XRL.World.Parts.Effects;
+using MoreMentalMutations.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    internal class MMM_DefectChemicalAddiction : BaseMutation
+    internal class MMM_DefectChemicalAddiction : MMM_BaseMutation
     {
         public int StrungOutSeverity = 1;
         public int GeneralTurns = 1000;
@@ -20,10 +14,12 @@ namespace XRL.World.Parts.Mutation
         public bool GotConfusedFromRightThing = false;
         //public int intoxication = 0;
 
+        private string[] AcceptableLiquids = { "wine", "cider" };
+
         public MMM_DefectChemicalAddiction()
         {
-            //this.Name = nameof(MMM_DefectChemicalAddiction);
-            this.DisplayName = "Chemical addiction (&rD&y)";
+            //this.Name = nameof(DefectChemicalAddiction);
+            DisplayName = "Chemical addiction (&rD&y)";
         }
 
         public override bool CanLevel()
@@ -31,17 +27,19 @@ namespace XRL.World.Parts.Mutation
             return false;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "EnteredCell");
-            Object.RegisterPartEvent((IPart)this, "EndTurn");
-            Object.RegisterPartEvent((IPart)this, "Eating");
-            Object.RegisterPartEvent((IPart)this, "Drank");
+            Object.RegisterPartEvent(this, "EnteredCell");
+            Object.RegisterPartEvent(this, "EndTurn");
+            Object.RegisterPartEvent(this, "Eating");
+            Object.RegisterPartEvent(this, "Drank");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
         {
-            return "You have the unstoppable desire to consume mind-altering items at least every " + this.GeneralTurns.ToString() + " turns. Withdrawal gets worse every time you do not satisfy your need to get high, giving -1 or more penalty to your willpower.";
+            return "You have the unstoppable desire to consume mind-altering items at least every " + GeneralTurns.ToString() + " turns. Withdrawal gets worse every time you do not satisfy your need to get high, giving -1 or more penalty to your willpower.";
         }
 
         public override string GetLevelText(int Level)
@@ -51,46 +49,51 @@ namespace XRL.World.Parts.Mutation
 
         public void GiveWithdrawal()
         {
-            if (this.ParentObject.HasEffect("MMM_EffectStrungOut"))
+            if (ParentObject.HasEffect<MMM_EffectStrungOut>())
             {
-                this.ParentObject.RemoveEffect("MMM_EffectStrungOut");
-                if (this.ParentObject.IsPlayer())
+                ParentObject.RemoveEffect<MMM_EffectStrungOut>();
+
+                if (ParentObject.IsPlayer())
                 {
                     MessageQueue.AddPlayerMessage("&rYour withdrawal gets worse.&y");
                 }
             }
-            else
+            else if (ParentObject.IsPlayer())
             {
-                if (this.ParentObject.IsPlayer())
-                {
-                    MessageQueue.AddPlayerMessage("&rWithdrawal kicks in.");
-                }
+                MessageQueue.AddPlayerMessage("&rWithdrawal kicks in.");
             }
-            this.ParentObject.ApplyEffect((Effect)new MMM_EffectStrungOut(this.StrungOutSeverity));
+
+            ParentObject.ApplyEffect(new MMM_EffectStrungOut(StrungOutSeverity));
         }
 
         public void Relieve()
         {
-            if (this.ParentObject.HasEffect("MMM_EffectStrungOut"))
+            if (ParentObject.HasEffect<MMM_EffectStrungOut>())
             {
-                this.ParentObject.RemoveEffect("MMM_EffectStrungOut");
-                if (this.ParentObject.IsPlayer())
+                ParentObject.RemoveEffect<MMM_EffectStrungOut>();
+
+                if (ParentObject.IsPlayer())
                 {
                     MessageQueue.AddPlayerMessage("&gYou are relieved of withdrawal.");
                 }
             }
-            this.StrungOutSeverity--;
+
+            StrungOutSeverity--;
         }
 
         public void FindSomethingToGetHighOn()
         {
-            List<GameObject> inventory = this.ParentObject.GetPart<Inventory>().Objects;
+            List<GameObject> inventory = ParentObject.GetPart<Inventory>().Objects;
             List<GameObject> ConfusingItems = new List<GameObject>();
+
             foreach (GameObject GO in inventory)
             {
-                if (GO.HasPart("LiquidVolume"))
+                LiquidVolume liquid = GO.GetPart<LiquidVolume>();
+
+                if (liquid != null)
                 {
-                    if (GO.GetPart<LiquidVolume>().Volume > 0 && (GO.GetPart<LiquidVolume>().Primary == "wine" || GO.GetPart<LiquidVolume>().Primary == "cider"))
+
+                    if (liquid.Volume > 0 && AcceptableLiquids.Contains(liquid.Primary))
                     {
                         ConfusingItems.Add(GO);
                     }
@@ -104,96 +107,106 @@ namespace XRL.World.Parts.Mutation
             if (ConfusingItems.Count > 0)
             {
                 GameObject GO2 = ConfusingItems[0];
-                if (GO2.HasPart("LiquidVolume"))                                 
-                    GO2.FireEvent(Event.New("InvCommandDrinkObject", "Owner", (object)this.ParentObject));                
-                else                
-                    GO2.FireEvent(Event.New("InvCommandEatObject", "Owner", (object)this.ParentObject));              
+
+                if (GO2.HasPart("LiquidVolume"))
+                {
+                    GO2.FireEvent(Event.New("InvCommandDrinkObject", "Owner", ParentObject));
+                }
+                else
+                {
+                    GO2.FireEvent(Event.New("InvCommandEatObject", "Owner", ParentObject));
+                }
             }
         }
 
         public void CheckTurns()
         {
-            if (this.TurnsToNextConsumption > 0)
+            if (TurnsToNextConsumption > 0)
             {
                 //MessageQueue.AddPlayerMessage(this.TurnsToNextConsumption.ToString() + " turns until you have to drink again.");
                 return;
             }
-            else if (!this.ParentObject.AreHostilesNearby() && !this.ParentObject.OnWorldMap())//As not to get confused in inappropriate time
+            else if (!ParentObject.AreHostilesNearby() && !ParentObject.OnWorldMap())//As not to get confused in inappropriate time
             {
                 int i = 0;
                 int stopbothering = 20;
-
                 MessageQueue.AddPlayerMessage("&rYou look for something to drink or get high on in your pockets.");
-                while (!this.ParentObject.HasEffect("Confused") && i < stopbothering)
+
+                while (!ParentObject.HasEffect("Confused") && i < stopbothering)
                 {
-                    this.FindSomethingToGetHighOn();
+                    FindSomethingToGetHighOn();
                     i++;
                 }
             }
-            if (this.ParentObject.HasEffect("Confused"))
+            if (ParentObject.HasEffect("Confused"))
             {
-                this.Relieve();
+                Relieve();
             }
             else
             {
-                this.GiveWithdrawal();
-                this.StrungOutSeverity++;
+                GiveWithdrawal();
+                StrungOutSeverity++;
             }
-            this.TurnsToNextConsumption = this.GeneralTurns;
+
+            TurnsToNextConsumption = GeneralTurns;
         }
 
         public override bool FireEvent(Event E)
         {
-            if (E.ID == "EnteredCell" && this.ParentObject.OnWorldMap())
+            if (E.ID == "EnteredCell" && ParentObject.OnWorldMap())
             {
-                this.TurnsToNextConsumption -= 90;
-                if (this.ParentObject.HasEffect("Confused"))
+                TurnsToNextConsumption -= 90;
+                if (ParentObject.HasEffect("Confused"))
                 {
-                    if (this.GotConfusedFromRightThing)
+                    if (GotConfusedFromRightThing)
                     {
-                        this.Relieve();
-                        this.GotConfusedFromRightThing = false;
+                        Relieve();
+                        GotConfusedFromRightThing = false;
                     }
                 }
                 else
-                    this.CheckTurns();
-                return true;
-            }
-            if (E.ID == "EndTurn" && !this.ParentObject.OnWorldMap())
-            {
-                //if (this.intoxication > 0) this.intoxication--;
-                this.TurnsToNextConsumption--;
-                if (this.ParentObject.HasEffect("Confused"))
                 {
-                    if (this.GotConfusedFromRightThing)
-                    {
-                        this.Relieve();
-                        this.GotConfusedFromRightThing = false;
-                    }
+                    CheckTurns();
                 }
-                else
-                    this.CheckTurns();
-                return true;
-            }
-            if (E.ID == "Eating")
-            {
-                GameObject Food = E.GetParameter("Food") as GameObject;
-                if(Food.HasPart("ConfuseOnEat"))
-                    this.GotConfusedFromRightThing = true;
-                else
-                    this.GotConfusedFromRightThing = false;
-                return true;
-            }
-            if (E.ID == "Drank")
-            {
-                GameObject Drink = E.GetParameter("Object") as GameObject;
-                if (Drink.GetPart<LiquidVolume>().Primary == "wine" || Drink.GetPart<LiquidVolume>().Primary == "cider")
-                    this.GotConfusedFromRightThing = true;
-                else
-                    this.GotConfusedFromRightThing = false;
 
                 return true;
             }
+            if (E.ID == "EndTurn" && !ParentObject.OnWorldMap())
+            {
+                //if (this.intoxication > 0) this.intoxication--;
+                TurnsToNextConsumption--;
+                if (ParentObject.HasEffect("Confused"))
+                {
+                    if (GotConfusedFromRightThing)
+                    {
+                        Relieve();
+                        GotConfusedFromRightThing = false;
+                    }
+                }
+                else
+                {
+                    CheckTurns();
+                }
+
+                return true;
+            }
+
+            if (E.ID == "Eating")
+            {
+                GameObject Food = E.GetParameter("Food") as GameObject;
+                GotConfusedFromRightThing = Food.HasPart("ConfuseOnEat");
+
+                return true;
+            }
+
+            if (E.ID == "Drank")
+            {
+                GameObject Drink = E.GetParameter("Object") as GameObject;
+                GotConfusedFromRightThing = AcceptableLiquids.Contains(Drink.GetPart<LiquidVolume>().Primary);
+
+                return true;
+            }
+
             return base.FireEvent(E);
         }
 
@@ -204,8 +217,8 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            this.TurnsToNextConsumption = this.GeneralTurns;
-            this.ChangeLevel(Level);
+            TurnsToNextConsumption = GeneralTurns;
+            ChangeLevel(Level);
             return base.Mutate(GO, Level);
         }
 

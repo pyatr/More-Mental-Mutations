@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using XRL.World.AI.GoalHandlers;
-using XRL.World.Parts.Effects;
-using XRL.Messages;
-using XRL.UI;
-using XRL.Rules;
+using MoreMentalMutations.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
     [Serializable]
-    public class MMM_Presence : BaseMutation
+    public class MMM_Presence : MMM_BaseMutation
     {
         public Guid PresenceActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry PresenceActivatedAbility;
@@ -22,15 +19,17 @@ namespace XRL.World.Parts.Mutation
 
         public MMM_Presence()
         {
-            this.DisplayName = "Presence";
-            this.Type = "Mental";
+            DisplayName = "Presence";
+            Type = "Mental";
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent((IPart)this, "CommandPresence");
-            Object.RegisterPartEvent((IPart)this, "CommandUnPresence");
-            Object.RegisterPartEvent((IPart)this, "AIGetOffensiveMutationList");
+            Object.RegisterPartEvent(this, "CommandPresence");
+            Object.RegisterPartEvent(this, "CommandUnPresence");
+            Object.RegisterPartEvent(this, "AIGetOffensiveMutationList");
+
+            base.Register(Object, Registrar);
         }
 
         public override string GetDescription()
@@ -40,7 +39,7 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetLevelText(int Level)
         {
-            return "Hostile and neutral creatures get penalty to hit, DV and Willpower equal to your Ego modifier (multiplied by 2 for DV), -10 to movement speed and hostiles get " + this.ChanceToFlee.ToString() + "% chance to flee.\n" + "Friendly creatures get bonus to Willpower and Strength equal to your Ego modifier + 2. If no enemies are present nearby, friendly creatures get penalty to Willpower instead.\n" + "Duration: " + (this.PrBaseDuration + Level * this.PrDurationPerLevel).ToString() + " turns.\n" + "Cooldown: " + this.PrBaseCooldown.ToString() + " turns.";
+            return "Hostile and neutral creatures get penalty to hit, DV and Willpower equal to your Ego modifier (multiplied by 2 for DV), -10 to movement speed and hostiles get " + ChanceToFlee.ToString() + "% chance to flee.\n" + "Friendly creatures get bonus to Willpower and Strength equal to your Ego modifier + 2. If no enemies are present nearby, friendly creatures get penalty to Willpower instead.\n" + "Duration: " + (PrBaseDuration + Level * PrDurationPerLevel).ToString() + " turns.\n" + "Cooldown: " + PrBaseCooldown.ToString() + " turns.";
         }
 
         public override bool FireEvent(Event E)
@@ -49,32 +48,36 @@ namespace XRL.World.Parts.Mutation
             {
                 int parameter1 = (int)E.GetParameter("Distance");
                 List<AICommandList> parameter2 = (List<AICommandList>)E.GetParameter("List");
-                if (this.PresenceActivatedAbility != null && this.PresenceActivatedAbility.Cooldown <= 0 && parameter1 <= 7)
+
+                if (PresenceActivatedAbility != null && PresenceActivatedAbility.Cooldown <= 0 && parameter1 <= 7)
                 {
                     parameter2.Add(new AICommandList("CommandPresence", 1));
                 }
+
                 return true;
             }
             if (E.ID == "CommandPresence")
             {
-                if (!this.ParentObject.HasEffect("MMM_EffectPresence"))
+                if (!ParentObject.HasEffect<MMM_EffectPresence>())
                 {
-                    this.ParentObject.ApplyEffect((Effect)new MMM_EffectPresence(this.PrBaseDuration + this.Level * this.PrDurationPerLevel, this.ParentObject.Statistics["Ego"].Modifier, this.ParentObject, this.ChanceToFlee, this.ParentObject.AreHostilesNearby()));
-                    this.ParentObject.UseEnergy(1000, "Mental");
-                    this.PresenceActivatedAbility.Cooldown = this.PrBaseCooldown * 10 + 10;
+                    ParentObject.ApplyEffect(new MMM_EffectPresence(PrBaseDuration + Level * PrDurationPerLevel, ParentObject.Statistics["Ego"].Modifier, ParentObject, ChanceToFlee, ParentObject.AreHostilesNearby()));
+                    ParentObject.UseEnergy(1000, "Mental");
+                    PresenceActivatedAbility.Cooldown = PrBaseCooldown * 10 + 10;
                 }
+
                 return true;
             }
             if (E.ID == "CommandUnPresence")
             {
-                if (this.ParentObject.HasEffect("MMM_EffectPresence"))
+                if (ParentObject.HasEffect<MMM_EffectPresence>())
                 {
-                    this.ParentObject.RemoveEffect("MMM_EffectPresence");
-                    this.ParentObject.UseEnergy(1000, "Mental");
+                    ParentObject.RemoveEffect<MMM_EffectPresence>();
+                    ParentObject.UseEnergy(1000, "Mental");
                 }
+
                 return true;
             }
-            return true;
+            return base.FireEvent(E);
         }
 
         public override bool ChangeLevel(int NewLevel)
@@ -84,33 +87,29 @@ namespace XRL.World.Parts.Mutation
 
         public override bool Mutate(GameObject GO, int Level)
         {
-            ActivatedAbilities part = GO.GetPart("ActivatedAbilities") as ActivatedAbilities;
+            ActivatedAbilities part = GetActivatedAbilities(GO);
+
             if (part != null)
             {
-                this.PresenceActivatedAbilityID = part.AddAbility("Presence", "CommandPresence", "Mental Mutation");
-                this.PresenceActivatedAbility = part.AbilityByGuid[this.PresenceActivatedAbilityID];
+                PresenceActivatedAbilityID = part.AddAbility("Presence", "CommandPresence", "Mental Mutation");
+                PresenceActivatedAbility = part.AbilityByGuid[PresenceActivatedAbilityID];
                 // this.PresenceActivatedAbility.UITileDefault.Tile = "Mutations/presence.png";
                 // this.PresenceActivatedAbility.UITileDefault.TileColor = "b";
                 // this.PresenceActivatedAbility.UITileDefault.DetailColor = 'B';
-                this.UnPresenceActivatedAbilityID = part.AddAbility("Cease presence", "CommandUnPresence", "Mental Mutation");
-                this.UnPresenceActivatedAbility = part.AbilityByGuid[this.UnPresenceActivatedAbilityID];
+                UnPresenceActivatedAbilityID = part.AddAbility("Cease presence", "CommandUnPresence", "Mental Mutation");
+                UnPresenceActivatedAbility = part.AbilityByGuid[UnPresenceActivatedAbilityID];
             }
-            this.ChangeLevel(Level);
+
+            ChangeLevel(Level);
+
             return base.Mutate(GO, Level);
         }
 
         public override bool Unmutate(GameObject GO)
         {
-            if (this.PresenceActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.PresenceActivatedAbilityID);
-                this.PresenceActivatedAbilityID = Guid.Empty;
-            }
-            if (this.UnPresenceActivatedAbilityID != Guid.Empty)
-            {
-                (GO.GetPart("ActivatedAbilities") as ActivatedAbilities).RemoveAbility(this.UnPresenceActivatedAbilityID);
-                this.UnPresenceActivatedAbilityID = Guid.Empty;
-            }
+            RemoveMutationByGUID(GO, ref PresenceActivatedAbilityID);
+            RemoveMutationByGUID(GO, ref UnPresenceActivatedAbilityID);
+
             return base.Unmutate(GO);
         }
     }

@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
-using XRL.Core;
-using XRL.Messages;
-using XRL.World.Parts;
-using XRL.World.Parts.Mutation;
-using XRL.World.AI;
-using XRL.World.AI.GoalHandlers;
+using XRL;
 using XRL.Rules;
+using XRL.World;
 using XRL.World.Capabilities;
 using XRL.World.Effects;
 
-namespace XRL.World.Parts.Effects
+namespace MoreMentalMutations.Effects
 {
     [Serializable]
     public class MMM_EffectUnderPresence : Effect
@@ -24,18 +19,18 @@ namespace XRL.World.Parts.Effects
 
         public MMM_EffectUnderPresence()
         {
-            this.DisplayName = "&OUnder someone's presence";
+            DisplayName = "&OUnder someone's presence";
         }
 
         public MMM_EffectUnderPresence(GameObject _PresenceEmanator, int _Strength, int _Duration, int _ChanceToFlee, bool _HostilesNearby) : this()
         {
-            this.PresenceEmanator = _PresenceEmanator;
+            PresenceEmanator = _PresenceEmanator;
             //this.DisplayName = "&OUnder " + _PresenceEmanator.DisplayName + "'s presence";
-            this.DisplayName = "&OUnder someone's presence";
-            this.Strength = _Strength;
-            this.Duration = _Duration;
-            this.ChanceToFlee = _ChanceToFlee;
-            this.HostilesNearby = _HostilesNearby;
+            DisplayName = "&OUnder someone's presence";
+            Strength = _Strength;
+            Duration = _Duration;
+            ChanceToFlee = _ChanceToFlee;
+            HostilesNearby = _HostilesNearby;
         }
 
         public override string GetDetails()
@@ -46,6 +41,7 @@ namespace XRL.World.Parts.Effects
         public override bool Apply(GameObject Object)
         {
             ApplyEffect();
+
             return true;
         }
 
@@ -56,87 +52,99 @@ namespace XRL.World.Parts.Effects
 
         public void ApplyEffect()
         {
-            if (GameObject.validate(ref this.PresenceEmanator))
+            if (!GameObject.Validate(ref PresenceEmanator))
             {
-                this.Feeling = Object.GetPart<Brain>().GetFeeling(this.PresenceEmanator);
-                if (this.Feeling > 0)
+
+            }
+
+            Feeling = Object.Brain.GetFeeling(PresenceEmanator);
+            if (Feeling > 0)
+            {
+                if (HostilesNearby)
                 {
-                    if (HostilesNearby)
-                        Object.Statistics["Willpower"].Bonus += this.Strength;
-                    else
-                        Object.Statistics["Willpower"].Penalty += this.Strength;
-                    Object.Statistics["Strength"].Bonus += this.Strength;
+                    Object.Statistics["Willpower"].Bonus += Strength;
                 }
                 else
                 {
-                    Object.Statistics["Willpower"].Penalty += this.Strength;
-                    Object.Statistics["MoveSpeed"].Penalty += 10;
-                    Object.Statistics["DV"].Penalty += this.Strength * 2;
-                    Object.ModIntProperty("HitBonus", -this.Strength);
+                    Object.Statistics["Willpower"].Penalty += Strength;
                 }
+
+                Object.Statistics["Strength"].Bonus += Strength;
+            }
+            else
+            {
+                Object.Statistics["Willpower"].Penalty += Strength;
+                Object.Statistics["MoveSpeed"].Penalty += 10;
+                Object.Statistics["DV"].Penalty += Strength * 2;
+                Object.ModIntProperty("HitBonus", -Strength);
             }
         }
 
         public void UnapplyEffect()
         {
-            if (this.Feeling > 0)
+            if (Feeling > 0)
             {
                 if (HostilesNearby)
-                    Object.Statistics["Willpower"].Bonus -= this.Strength;
+                    Object.Statistics["Willpower"].Bonus -= Strength;
                 else
-                    Object.Statistics["Willpower"].Penalty -= this.Strength;
-                Object.Statistics["Strength"].Bonus -= this.Strength;
+                    Object.Statistics["Willpower"].Penalty -= Strength;
+                Object.Statistics["Strength"].Bonus -= Strength;
             }
             else
             {
-                Object.Statistics["Willpower"].Penalty -= this.Strength;
+                Object.Statistics["Willpower"].Penalty -= Strength;
                 Object.Statistics["MoveSpeed"].Penalty -= 10;
-                Object.Statistics["DV"].Penalty -= this.Strength * 2;
-                Object.ModIntProperty("HitBonus", this.Strength);
+                Object.Statistics["DV"].Penalty -= Strength * 2;
+                Object.ModIntProperty("HitBonus", Strength);
             }
-            this.PresenceEmanator = (GameObject)null;
+
+            PresenceEmanator = null;
         }
 
-        public override void Register(GameObject Object)
+        public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent((Effect)this, TriggerEvent);
-            Object.RegisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
-        }
+            Object.RegisterEffectEvent(this, TriggerEvent);
+            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
+            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
 
-        public override void Unregister(GameObject Object)
-        {
-            Object.UnregisterEffectEvent((Effect)this, TriggerEvent);
-            Object.UnregisterEffectEvent((Effect)this, "AfterDeepCopyWithoutEffects");
-            Object.UnregisterEffectEvent((Effect)this, "BeforeDeepCopyWithoutEffects");
+            base.Register(Object, Registrar);
         }
 
         public override bool FireEvent(Event E)
         {
             if (E.ID == TriggerEvent)
             {
-                if (GameObject.validate(ref this.PresenceEmanator) && this.PresenceEmanator != null)
+                if (GameObject.Validate(ref PresenceEmanator) && PresenceEmanator != null)
                 {
                     //this.Object.ParticleText("My willpower penalty/bonus are " + this.Object.Statistics["Willpower"].Penalty + "/" + this.Object.Statistics["Willpower"].Bonus);
-                    if (this.Feeling < 0)
+                    if (Feeling < 0)
                     {
-                        if (Stat.Random(1, 100) < this.ChanceToFlee)
+                        if (Stat.Random(1, 100) < ChanceToFlee)
                         {
-                            this.PerformMentalAttack(new Mental.Attack(Terrified.OfAttacker), this.PresenceEmanator, this.Object, this.PresenceEmanator, "Get scared by presence", "1d8", 1, Stat.Roll("3d3"));
+                            PerformMentalAttack(new Mental.Attack(Terrified.OfAttacker), PresenceEmanator, Object, PresenceEmanator, "Get scared by presence", "1d8", 1, Stat.Roll("3d3"));
                             //Fear.ApplyFearToObject("1d8", Stat.Roll("3d3"), this.Object, this.PresenceEmanator, this.PresenceEmanator);
                             //this.Object.ParticleText("&g*fleeing!*");
                         }
                     }
-                    this.Duration--;
+                    Duration--;
                 }
                 else
-                    this.Duration = 0;
+                {
+                    Duration = 0;
+                }
+
                 return true;
             }
+
             if (E.ID == "BeforeDeepCopyWithoutEffects")
-                this.UnapplyEffect();
+            {
+                UnapplyEffect();
+            }
+
             if (E.ID == "AfterDeepCopyWithoutEffects")
-                this.ApplyEffect();
+            {
+                ApplyEffect();
+            }
             return base.FireEvent(E);
         }
     }
