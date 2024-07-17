@@ -17,7 +17,7 @@ namespace XRL.World.Parts
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "ApplyDomination");
+            Registrar.Register("ApplyDomination");
 
             base.Register(Object, Registrar);
         }

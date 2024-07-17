@@ -84,12 +84,12 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "AIGetOffensiveMutationList");
-            Object.RegisterPartEvent(this, "AIGetPassiveMutationList");
-            Object.RegisterPartEvent(this, "BeginTakeAction");
-            Object.RegisterPartEvent(this, "EndTurn");
-            Object.RegisterPartEvent(this, "EnteredCell");
-            Object.RegisterPartEvent(this, "CommandFlight");
+            Registrar.Register("AIGetOffensiveMutationList");
+            Registrar.Register("AIGetPassiveMutationList");
+            Registrar.Register("BeginTakeAction");
+            Registrar.Register("EndTurn");
+            Registrar.Register("EnteredCell");
+            Registrar.Register("CommandFlight");
 
             base.Register(Object, Registrar);
         }

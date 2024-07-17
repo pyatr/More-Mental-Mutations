@@ -26,7 +26,7 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandGravityField");
+            Registrar.Register("CommandGravityField");
 
             base.Register(Object, Registrar);
         }

@@ -23,8 +23,8 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandDynakineticism");
-            Object.RegisterPartEvent(this, "AIGetOffensiveMutationList");
+            Registrar.Register("CommandDynakineticism");
+            Registrar.Register("AIGetOffensiveMutationList");
 
             base.Register(Object, Registrar);
         }

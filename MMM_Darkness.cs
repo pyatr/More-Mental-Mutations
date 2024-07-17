@@ -17,8 +17,8 @@ namespace XRL.World.Parts
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "EndTurn");
-            Object.RegisterPartEvent(this, "ObjectEnteredCell");
+            Registrar.Register("EndTurn");
+            Registrar.Register("ObjectEnteredCell");
 
             base.Register(Object, Registrar);
         }

@@ -21,9 +21,9 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandObfuscate");
-            Object.RegisterPartEvent(this, "CommandUnObfuscate");
-            Object.RegisterPartEvent(this, "AIGetDefensiveMutationList");
+            Registrar.Register("CommandObfuscate");
+            Registrar.Register("CommandUnObfuscate");
+            Registrar.Register("AIGetDefensiveMutationList");
 
             base.Register(Object, Registrar);
         }

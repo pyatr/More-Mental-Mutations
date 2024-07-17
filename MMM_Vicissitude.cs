@@ -100,7 +100,7 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandTakeCorpseApart");
+            Registrar.Register("CommandTakeCorpseApart");
 
             base.Register(Object, Registrar);
         }

@@ -15,7 +15,7 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandDummy");
+            Registrar.Register("CommandDummy");
 
             base.Register(Object, Registrar);
         }

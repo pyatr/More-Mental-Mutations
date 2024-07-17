@@ -29,10 +29,10 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "EnteredCell");
-            Object.RegisterPartEvent(this, "EndTurn");
-            Object.RegisterPartEvent(this, "Eating");
-            Object.RegisterPartEvent(this, "Drank");
+            Registrar.Register("EnteredCell");
+            Registrar.Register("EndTurn");
+            Registrar.Register("Eating");
+            Registrar.Register("Drank");
 
             base.Register(Object, Registrar);
         }

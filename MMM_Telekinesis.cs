@@ -51,10 +51,10 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandTelekinesisCreaturePickup");
-            Object.RegisterPartEvent(this, "CommandTelekinesisPickup");
-            Object.RegisterPartEvent(this, "CommandTelekinesisThrow");
-            Object.RegisterPartEvent(this, "CommandTelekinesisThrowWeapon");
+            Registrar.Register("CommandTelekinesisCreaturePickup");
+            Registrar.Register("CommandTelekinesisPickup");
+            Registrar.Register("CommandTelekinesisThrow");
+            Registrar.Register("CommandTelekinesisThrowWeapon");
 
             base.Register(Object, Registrar);
         }

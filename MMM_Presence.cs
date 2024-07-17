@@ -25,9 +25,9 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "CommandPresence");
-            Object.RegisterPartEvent(this, "CommandUnPresence");
-            Object.RegisterPartEvent(this, "AIGetOffensiveMutationList");
+            Registrar.Register("CommandPresence");
+            Registrar.Register("CommandUnPresence");
+            Registrar.Register("AIGetOffensiveMutationList");
 
             base.Register(Object, Registrar);
         }

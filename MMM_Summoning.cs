@@ -53,13 +53,13 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterPartEvent(this, "EndTurn");
-            Object.RegisterPartEvent(this, "CommandSummonWeapon");
-            Object.RegisterPartEvent(this, "CommandSummonCreature");
-            Object.RegisterPartEvent(this, "CommandWeaponMenu");
-            Object.RegisterPartEvent(this, "CommandCreatureMenu");
-            Object.RegisterPartEvent(this, "CommandWeaponSpawnTwoHanded");
-            Object.RegisterPartEvent(this, "CommandWeaponSpawnDual");
+            Registrar.Register("EndTurn");
+            Registrar.Register("CommandSummonWeapon");
+            Registrar.Register("CommandSummonCreature");
+            Registrar.Register("CommandWeaponMenu");
+            Registrar.Register("CommandCreatureMenu");
+            Registrar.Register("CommandWeaponSpawnTwoHanded");
+            Registrar.Register("CommandWeaponSpawnDual");
 
             base.Register(Object, Registrar);
         }
