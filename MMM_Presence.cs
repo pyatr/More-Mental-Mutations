@@ -25,6 +25,7 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
+            Registrar.Register("EndTurn");
             Registrar.Register("CommandPresence");
             Registrar.Register("CommandUnPresence");
             Registrar.Register("AIGetOffensiveMutationList");
@@ -55,6 +56,13 @@ namespace XRL.World.Parts.Mutation
                 }
 
                 return true;
+            }
+            if (E.ID == "EndTurn")
+            {
+                if (!ParentObject.HasEffect<MMM_EffectPresence>())
+                {
+                    UnPresenceActivatedAbility.Enabled = false;
+                }
             }
             if (E.ID == "CommandPresence")
             {

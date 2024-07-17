@@ -21,7 +21,7 @@ namespace XRL.World.Parts.Mutation
         public bool FlightRequiresOngoingEffort => true;
         public string FlightEvent => "CommandFlight";
         public string FlightActivatedAbilityClass => "Mental Mutation";
-        public string FlightSourceDescription => string.Empty;
+        public string FlightSourceDescription => "You can levitate.";
 
         public bool FlightFlying
         {
@@ -143,7 +143,7 @@ namespace XRL.World.Parts.Mutation
 
         public void StopFlying()
         {
-            if (ParentObject.HasEffect("EffectLevitation"))
+            if (ParentObject.HasEffect<MMM_EffectLevitation>())
             {
                 ParentObject.RemoveEffect(typeof(MMM_EffectLevitation));
             }
@@ -186,7 +186,7 @@ namespace XRL.World.Parts.Mutation
                     }
                     else
                     {
-                        if (!ParentObject.HasEffect("EffectLevitation"))
+                        if (!ParentObject.HasEffect<MMM_EffectLevitation>())
                         {
                             ParentObject.CooldownActivatedAbility(((IFlightSource)this).FlightActivatedAbilityID, Cooldown, null);
                             ParentObject.UseEnergy(1000, "Mental");

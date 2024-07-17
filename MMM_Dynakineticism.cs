@@ -42,7 +42,7 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetDescription()
         {
-            return "You creature pressure within your target, crushing it from inside";
+            return "You creature pressure within your target, crushing it from inside.";
         }
 
         public override string GetLevelText(int Level)

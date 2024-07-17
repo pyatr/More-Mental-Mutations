@@ -26,17 +26,9 @@ namespace XRL.World.Parts
         {
             if (E.ID == "ApplyDomination")
             {
-                /*if (this.ParentObject.HasEffect("Dominated"))
-                {
-                    Effect effect = this.ParentObject.GetEffect("Dominated") as Effect;
-                    effect.Duration = 0;
-                }
-                
-                return true;
-                */
-
                 return false;
             }
+
             return base.FireEvent(E);
         }
     }

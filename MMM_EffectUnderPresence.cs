@@ -21,7 +21,12 @@ namespace MoreMentalMutations.Effects
         {
             if (Object.IsPlayer())
             {
-                DisplayName = "&OUnder someones presence";
+                DisplayName = "&Ounder someones presence";
+            }
+
+            if (GameObject.Validate(ref PresenceEmanator) && PresenceEmanator.IsPlayer())
+            {
+                DisplayName = "&Ounder your presence";
             }
         }
 
@@ -106,9 +111,9 @@ namespace MoreMentalMutations.Effects
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent(this, TriggerEvent);
-            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
+            Registrar.Register(TriggerEvent);
+            Registrar.Register("AfterDeepCopyWithoutEffects");
+            Registrar.Register("BeforeDeepCopyWithoutEffects");
 
             base.Register(Object, Registrar);
         }

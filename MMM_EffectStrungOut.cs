@@ -11,7 +11,7 @@ namespace MoreMentalMutations.Effects
 
         public MMM_EffectStrungOut()
         {
-            DisplayName = "&rStrung out";
+            DisplayName = "&rstrung out";
         }
 
         public MMM_EffectStrungOut(int _Severity) : this()
@@ -38,7 +38,7 @@ namespace MoreMentalMutations.Effects
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent(this, "EndTurn");
+            Registrar.Register("EndTurn");
 
             base.Register(Object, Registrar);
         }

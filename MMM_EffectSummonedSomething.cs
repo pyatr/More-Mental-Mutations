@@ -37,7 +37,7 @@ namespace MoreMentalMutations.Effects
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent(this, "EndTurn");
+            Registrar.Register("EndTurn");
 
             base.Register(Object, Registrar);
         }

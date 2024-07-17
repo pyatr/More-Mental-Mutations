@@ -54,7 +54,7 @@ namespace XRL.World.Parts.Mutation
         {
             if (E.ID == "CommandGravityField")
             {
-                if (ParentObject.HasEffect("EffectGravityField"))
+                if (ParentObject.HasEffect<MMM_EffectGravityField>())
                 {
                     return true;
                 }

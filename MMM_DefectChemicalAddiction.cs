@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using XRL.Messages;
 using MoreMentalMutations.Effects;
+using XRL.World.Effects;
 
 namespace XRL.World.Parts.Mutation
 {
@@ -132,13 +133,13 @@ namespace XRL.World.Parts.Mutation
                 int stopbothering = 20;
                 MessageQueue.AddPlayerMessage("&rYou look for something to drink or get high on in your pockets.");
 
-                while (!ParentObject.HasEffect("Confused") && i < stopbothering)
+                while (!ParentObject.HasEffect<Confused>() && i < stopbothering)
                 {
                     FindSomethingToGetHighOn();
                     i++;
                 }
             }
-            if (ParentObject.HasEffect("Confused"))
+            if (ParentObject.HasEffect<Confused>())
             {
                 Relieve();
             }
@@ -156,7 +157,7 @@ namespace XRL.World.Parts.Mutation
             if (E.ID == "EnteredCell" && ParentObject.OnWorldMap())
             {
                 TurnsToNextConsumption -= 90;
-                if (ParentObject.HasEffect("Confused"))
+                if (ParentObject.HasEffect<Confused>())
                 {
                     if (GotConfusedFromRightThing)
                     {
@@ -175,7 +176,7 @@ namespace XRL.World.Parts.Mutation
             {
                 //if (this.intoxication > 0) this.intoxication--;
                 TurnsToNextConsumption--;
-                if (ParentObject.HasEffect("Confused"))
+                if (ParentObject.HasEffect<Confused>())
                 {
                     if (GotConfusedFromRightThing)
                     {

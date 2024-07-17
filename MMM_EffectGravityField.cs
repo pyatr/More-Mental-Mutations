@@ -12,7 +12,7 @@ namespace MoreMentalMutations.Effects
         //Required for deseralization!
         public MMM_EffectGravityField()
         {
-            DisplayName = "&gGravity field";
+            DisplayName = "&ggravity field";
         }
 
         public MMM_EffectGravityField(int MutationLevel, int _Duration) : this()
@@ -44,7 +44,7 @@ namespace MoreMentalMutations.Effects
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent(this, "EndTurn");
+            Registrar.Register("EndTurn");
 
             base.Register(Object, Registrar);
         }

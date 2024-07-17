@@ -66,10 +66,10 @@ namespace MoreMentalMutations.Effects
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent(this, "EndTurn");
-            Object.RegisterEffectEvent(this, "BeginTakeAction");
-            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
+            Registrar.Register("EndTurn");
+            Registrar.Register("BeginTakeAction");
+            Registrar.Register("AfterDeepCopyWithoutEffects");
+            Registrar.Register("BeforeDeepCopyWithoutEffects");
 
             base.Register(Object, Registrar);
         }

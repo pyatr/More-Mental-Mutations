@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using XRL.World.AI.GoalHandlers;
 using MoreMentalMutations.Effects;
+using UnityEngine;
 
 namespace XRL.World.Parts.Mutation
 {
@@ -21,6 +22,7 @@ namespace XRL.World.Parts.Mutation
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
+            Registrar.Register("EndTurn");
             Registrar.Register("CommandObfuscate");
             Registrar.Register("CommandUnObfuscate");
             Registrar.Register("AIGetDefensiveMutationList");
@@ -35,7 +37,7 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetLevelText(int Level)
         {
-            return "Duration: " + (20 + Level * 3) + " rounds" + "\nCooldown: " + 110 + " rounds\n";
+            return "Duration: " + (20 + Level * 3) + " rounds" + "\nCooldown: " + 110 + " rounds\n.";
         }
 
         public override bool FireEvent(Event E)
@@ -44,26 +46,37 @@ namespace XRL.World.Parts.Mutation
             {
                 E.GetParameter<List<AICommandList>>("List").Add(new AICommandList("CommandObfuscate", 1));
             }
+            if (E.ID == "EndTurn")
+            {
+                if (!ParentObject.HasEffect<MMM_EffectObfuscated>())
+                {
+                    UnObfuscateActivatedAbility.Enabled = false;
+                }
+            }
             if (E.ID == "CommandObfuscate")
             {
-                if (!ParentObject.HasEffect("EffectObfuscated"))
+                if (!ParentObject.HasEffect<MMM_EffectObfuscated>())
                 {
-                    ParentObject.ApplyEffect(new EffectObfuscated(20 + Level * 3, ParentObject));
+                    ParentObject.ApplyEffect(new MMM_EffectObfuscated(20 + Level * 3, ParentObject));
                     ParentObject.UseEnergy(1000, "Mental");
                     ObfuscateActivatedAbility.Cooldown = 1110;
                     UnObfuscateActivatedAbility.Enabled = true;
                 }
+
                 return true;
             }
             if (E.ID == "CommandUnObfuscate")
             {
-                if (ParentObject.HasEffect("EffectObfuscated"))
+                if (ParentObject.HasEffect<MMM_EffectObfuscated>())
                 {
-                    ParentObject.RemoveEffect(typeof(EffectObfuscated));
+                    ParentObject.RemoveEffect(typeof(MMM_EffectObfuscated));
+                    ParentObject.UseEnergy(1000, "Mental");
                     UnObfuscateActivatedAbility.Enabled = false;
                 }
+
                 return true;
             }
+
             return base.FireEvent(E);
         }
 
@@ -82,7 +95,7 @@ namespace XRL.World.Parts.Mutation
                 ObfuscateActivatedAbility = part.AbilityByGuid[ObfuscateActivatedAbilityID];
                 UnObfuscateActivatedAbilityID = part.AddAbility("Disable obfuscation", "CommandUnObfuscate", "Mental Mutation");
                 UnObfuscateActivatedAbility = part.AbilityByGuid[UnObfuscateActivatedAbilityID];
-                UnObfuscateActivatedAbility.Enabled = true;
+                UnObfuscateActivatedAbility.Enabled = false;
             }
 
             ChangeLevel(Level);

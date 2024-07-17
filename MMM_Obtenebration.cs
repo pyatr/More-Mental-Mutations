@@ -155,7 +155,7 @@ namespace XRL.World.Parts.Mutation
                     {
                         if (gameObject2.HasPart("Brain") && gameObject2.HasPart("Combat"))
                         {
-                            if (gameObject2 != ParentObject && !gameObject2.HasEffect("EffectHighlightCreature"))
+                            if (gameObject2 != ParentObject && !gameObject2.HasEffect<MMM_EffectHighlightCreature>())
                             {
                                 //Highlight creatures only in unlit areas 
                                 if (!litAreas[gameObject2.Physics.CurrentCell.X, gameObject2.Physics.CurrentCell.Y])

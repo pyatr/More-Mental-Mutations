@@ -385,7 +385,7 @@ namespace XRL.World.Parts.Mutation
 
             if (E.ID == "EndTurn")
             {
-                if (!ParentObject.HasEffect("EffectSummonedSomething") && SpawnedWeapons.Count > 0)
+                if (!ParentObject.HasEffect<MMM_EffectSummonedSomething>() && SpawnedWeapons.Count > 0)
                 {
                     SpawnedWeapons.Clear();
                 }

@@ -18,7 +18,7 @@ namespace MoreMentalMutations.Effects
 
         public MMM_EffectPresence()
         {
-            DisplayName = "&oPresence";
+            DisplayName = "&opresence";
         }
 
         public MMM_EffectPresence(int _Duration, int _Strength, GameObject _PresenceEmanator, int _ChanceToFlee, bool _HostilesNearby) : this()
@@ -50,9 +50,9 @@ namespace MoreMentalMutations.Effects
 
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
-            Object.RegisterEffectEvent(this, "EndTurn");
-            Object.RegisterEffectEvent(this, "AfterDeepCopyWithoutEffects");
-            Object.RegisterEffectEvent(this, "BeforeDeepCopyWithoutEffects");
+            Registrar.Register("EndTurn");
+            Registrar.Register("AfterDeepCopyWithoutEffects");
+            Registrar.Register("BeforeDeepCopyWithoutEffects");
 
             base.Register(Object, Registrar);
         }
@@ -73,7 +73,10 @@ namespace MoreMentalMutations.Effects
         {
             if (E.ID == "EndTurn")
             {
-                if (GameObject.Validate(ref PresenceEmanator) && PresenceEmanator != null)
+                bool validated = GameObject.Validate(ref PresenceEmanator);
+                bool hasPresenceEmanator = PresenceEmanator != null;
+
+                if (validated && hasPresenceEmanator)
                 {
                     List<GameObject> Creatures = new List<GameObject>();
                     Physics part = PresenceEmanator.GetPart<Physics>();
