@@ -36,15 +36,7 @@ namespace MoreMentalMutations.Opinions
             get
             {
                 //50 opinion is allied
-                return 49;
-            }
-        }
-
-        public override float Limit
-        {
-            get
-            {
-                return 49;
+                return 40;
             }
         }
 

@@ -1,6 +1,9 @@
 using System;
+using System.Diagnostics;
 using MoreMentalMutations.Opinions;
+// using UnityEngine;
 using XRL;
+using XRL.Messages;
 using XRL.World;
 
 namespace MoreMentalMutations.Effects
@@ -42,23 +45,36 @@ namespace MoreMentalMutations.Effects
 
         public void ApplyEffect()
         {
-            GameObject.Validate(ref ObjectToIgnore);
+            if (!GameObject.Validate(ref ObjectToIgnore) || Object.Brain == null)
+            {
+                return;
+            }
 
             if (Object.Brain.PartyLeader != ObjectToIgnore)
             {
-                Object.Brain.Target = null;
-                Object.Brain.AddOpinion<OpinionObfuscate>(ObjectToIgnore, 1);
-                Object.Brain.Forgive(ObjectToIgnore);
+                if (Object.Brain.Target == ObjectToIgnore)
+                {
+                    Object.Brain.Target = null;
+                }
+
+                Object.Brain.AddOpinion<OpinionObfuscate>(ObjectToIgnore);
             }
         }
 
         public void RestoreFeeling()
         {
-            GameObject.Validate(ref ObjectToIgnore);
+            UnityEngine.Debug.Log(new StackTrace());
+
+            if (!GameObject.Validate(ref ObjectToIgnore) || Object.Brain == null)
+            {
+                return;
+            }
 
             if (Object.Brain.PartyLeader != ObjectToIgnore)
             {
-                Object.Brain.RemoveOpinion<OpinionObfuscate>(ObjectToIgnore);
+                bool opinionRemoved = Object.Brain.RemoveOpinion<OpinionObfuscate>(ObjectToIgnore);
+                MessageQueue.AddPlayerMessage(Object.Brain.GetFeeling(ObjectToIgnore).ToString() + "/" + opinionRemoved.ToString());
+                //For some reason opinion removal can cause creature to become hostile if feeling restoration happened after save was loaded
             }
 
             ObjectToIgnore = null;
@@ -75,7 +91,7 @@ namespace MoreMentalMutations.Effects
         }
 
         public override bool FireEvent(Event E)
-        {
+        {            
             if (E.ID == "BeginTakeAction")
             {
                 if (!GameObject.Validate(ref ObjectToIgnore))
@@ -85,19 +101,20 @@ namespace MoreMentalMutations.Effects
 
                 if (Duration > 0)
                 {
-                    if (Object.Brain.GetFeeling(ObjectToIgnore) != 0)
-                    {
-                        ApplyEffect();
-                    }
+                    MMM_EffectObfuscated obfuscated = ObjectToIgnore.GetEffect<MMM_EffectObfuscated>();
 
-                    if (ObjectToIgnore.HasEffect<MMM_EffectObfuscated>())
+                    if (obfuscated != null && obfuscated.HiddenObject == ObjectToIgnore && Object.Brain.Target == ObjectToIgnore)
                     {
-                        if (Object.Brain.Target == ObjectToIgnore)
+                        Object.Brain.Target = null;
+
+                        if (Object.Brain.GetFeeling(ObjectToIgnore) != 0)
                         {
-                            Object.Brain.Target = null;
+                            // ApplyEffect();
                         }
                     }
                 }
+
+                return true;
             }
 
             if (E.ID == "EndTurn")
@@ -108,7 +125,6 @@ namespace MoreMentalMutations.Effects
                 }
                 else
                 {
-                    RestoreFeeling();
                     Duration = 0;
                 }
 

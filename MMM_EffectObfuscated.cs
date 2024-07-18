@@ -49,7 +49,7 @@ namespace MoreMentalMutations.Effects
         {
             GameObject.Validate(ref HiddenObject);
 
-            if (!HiddenObject.IsPlayer())
+            if (!HiddenObject.IsPlayer() && !IsTargetViable(The.Player))
             {
                 HiddenObject.Render.Visible = false;
             }
@@ -73,9 +73,11 @@ namespace MoreMentalMutations.Effects
 
             foreach (GameObject GO in Creatures)
             {
-                if (GO.HasEffect<MMM_EffectIgnoreObject>())
+                MMM_EffectIgnoreObject ignore = GO.GetEffect<MMM_EffectIgnoreObject>();
+
+                if (ignore != null && ignore.ObjectToIgnore == HiddenObject)
                 {
-                    GO.RemoveEffect<MMM_EffectIgnoreObject>();
+                    GO.RemoveEffect(ignore);
                 }
             }
 
