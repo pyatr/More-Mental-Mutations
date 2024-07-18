@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using MoreMentalMutations.Opinions;
 // using UnityEngine;
 using XRL;
 using XRL.Messages;
 using XRL.World;
+using XRL.World.AI;
 
 namespace MoreMentalMutations.Effects
 {
@@ -63,8 +65,6 @@ namespace MoreMentalMutations.Effects
 
         public void RestoreFeeling()
         {
-            UnityEngine.Debug.Log(new StackTrace());
-
             if (!GameObject.Validate(ref ObjectToIgnore) || Object.Brain == null)
             {
                 return;
@@ -72,9 +72,10 @@ namespace MoreMentalMutations.Effects
 
             if (Object.Brain.PartyLeader != ObjectToIgnore)
             {
-                bool opinionRemoved = Object.Brain.RemoveOpinion<OpinionObfuscate>(ObjectToIgnore);
-                MessageQueue.AddPlayerMessage(Object.Brain.GetFeeling(ObjectToIgnore).ToString() + "/" + opinionRemoved.ToString());
+                Object.Brain.RemoveOpinion<OpinionObfuscate>(ObjectToIgnore);
                 //For some reason opinion removal can cause creature to become hostile if feeling restoration happened after save was loaded
+                //So we have to clear expired opinions
+                Object.Brain.Opinions.ClearExpired();
             }
 
             ObjectToIgnore = null;
@@ -91,7 +92,7 @@ namespace MoreMentalMutations.Effects
         }
 
         public override bool FireEvent(Event E)
-        {            
+        {
             if (E.ID == "BeginTakeAction")
             {
                 if (!GameObject.Validate(ref ObjectToIgnore))
@@ -103,13 +104,16 @@ namespace MoreMentalMutations.Effects
                 {
                     MMM_EffectObfuscated obfuscated = ObjectToIgnore.GetEffect<MMM_EffectObfuscated>();
 
-                    if (obfuscated != null && obfuscated.HiddenObject == ObjectToIgnore && Object.Brain.Target == ObjectToIgnore)
+                    if (obfuscated != null && obfuscated.HiddenObject == ObjectToIgnore)
                     {
-                        Object.Brain.Target = null;
+                        if (Object.Brain.Target == ObjectToIgnore)
+                        {
+                            Object.Brain.Target = null;
+                        }
 
                         if (Object.Brain.GetFeeling(ObjectToIgnore) != 0)
                         {
-                            // ApplyEffect();
+                            ApplyEffect();
                         }
                     }
                 }

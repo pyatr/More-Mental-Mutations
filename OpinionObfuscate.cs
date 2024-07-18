@@ -40,6 +40,14 @@ namespace MoreMentalMutations.Opinions
             }
         }
 
+        public override int Cooldown
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
         public override string GetText(GameObject Actor)
         {
             return $"{Actor.ShortDisplayName} suddenly disappeared.";
