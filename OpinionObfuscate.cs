@@ -40,13 +40,14 @@ namespace MoreMentalMutations.Opinions
             }
         }
 
-        public override int Cooldown
+        public override float Limit
         {
             get
             {
-                return 0;
+                return 49;
             }
         }
+
 
         public override string GetText(GameObject Actor)
         {
