@@ -4,6 +4,7 @@ using XRL.World.Parts.Mutation;
 using XRL.World.Parts;
 using XRL.World;
 using XRL;
+using XRL.Messages;
 
 namespace MoreMentalMutations.Effects
 {
@@ -11,6 +12,9 @@ namespace MoreMentalMutations.Effects
     public class MMM_EffectObfuscated : Effect
     {
         public GameObject HiddenObject;
+
+        [NonSerialized]
+        public List<string> obfuscationBreakEvents = new() { "BeforeMeleeAttack", "FiredMissileWeapon", "BeginAttack" };
 
         public MMM_EffectObfuscated()
         {
@@ -47,11 +51,40 @@ namespace MoreMentalMutations.Effects
 
         public void Obfuscate()
         {
-            GameObject.Validate(ref HiddenObject);
+            if (!GameObject.Validate(ref HiddenObject))
+            {
+                return;
+            }
 
             if (!HiddenObject.IsPlayer() && !IsTargetViable(The.Player))
             {
                 HiddenObject.Render.Visible = false;
+            }
+
+            Physics hiddenObjectPhysics = HiddenObject.Physics;
+            List<GameObject> Creatures = new List<GameObject>(10);
+
+            if (hiddenObjectPhysics != null && hiddenObjectPhysics.CurrentCell != null)
+            {
+                Creatures = hiddenObjectPhysics.CurrentCell.ParentZone.FastSquareSearch(hiddenObjectPhysics.CurrentCell.X, hiddenObjectPhysics.CurrentCell.Y, 80, "Combat");
+            }
+
+            foreach (GameObject creature in Creatures)
+            {
+                if (!IsTargetViable(creature))
+                {
+                    continue;
+                }
+
+                MMM_EffectIgnoreObject ignoreOnObject = creature.GetEffect<MMM_EffectIgnoreObject>();
+
+                //If creature is not object itself, if it has no ignore effect or its ignore effect is from other creature
+                if (creature != HiddenObject &&
+                   (ignoreOnObject == null ||
+                   (ignoreOnObject != null && ignoreOnObject.ObjectToIgnore != HiddenObject)))
+                {
+                    creature.ApplyEffect(new MMM_EffectIgnoreObject(HiddenObject, Duration));
+                }
             }
         }
 
@@ -89,12 +122,13 @@ namespace MoreMentalMutations.Effects
             Registrar.Register("EndTurn");
             Registrar.Register("AfterDeepCopyWithoutEffects");
             Registrar.Register("BeforeDeepCopyWithoutEffects");
-            //Object.RegisterEffectEvent((Effect)this, "BeginAttack");
             Registrar.Register("BeginConversation");
             Registrar.Register("BeginTakeAction");
-            Registrar.Register("MeleeAttackWithWeapon");
-            Registrar.Register("FiredMissileWeapon");
-            Registrar.Register("CommandThrowWeapon");
+
+            foreach (string breakEvent in obfuscationBreakEvents)
+            {
+                Registrar.Register(breakEvent);
+            }
 
             base.Register(Object, Registrar);
         }
@@ -113,27 +147,6 @@ namespace MoreMentalMutations.Effects
 
         public override bool FireEvent(Event E)
         {
-            /* if (E.ID == "MeleeAttackWithWeapon")//not working, whatever
-             {
-                 if (this.Duration <= 0)
-                     return true;
-                 GameObject Defender = E.GetParameter("Defender") as GameObject;
-                 GameObject Weapon = E.GetParameter("Weapon") as GameObject;
-                 if (Defender.HasEffect<MMM_EffectIgnoreObject>())
-                 {
-                     //this.Object.ParticleText("Defend yourself, " + Defender.DisplayName);
-                     Event E1 = Event.New("MeleeAttackWithWeapon", 0, 0, 0);
-                     E1.AddParameter("Attacker", (object)this.HiddenObject);
-                     E1.AddParameter("Defender", (object)Defender);
-                     E1.AddParameter("Weapon", (object)Weapon);
-                     E1.AddParameter("Properties", "Autohit,Critical");
-
-                     this.Duration = 0;
-                     this.HiddenObject.FireEvent(E1);
-                 }
-                 return true;
-             }*/
-
             if (E.ID == "BeginConversation")
             {
                 Duration = 0;
@@ -151,43 +164,20 @@ namespace MoreMentalMutations.Effects
                 if (!GameObject.Validate(ref HiddenObject))
                 {
                     Duration = 0;
+
+                    return true;
                 }
 
-                if (Duration > 0)
-                {
-                    Physics hiddenObjectPhysics = HiddenObject.Physics;
-                    List<GameObject> Creatures = new List<GameObject>(10);
-
-                    if (hiddenObjectPhysics != null && hiddenObjectPhysics.CurrentCell != null)
-                    {
-                        Creatures = hiddenObjectPhysics.CurrentCell.ParentZone.FastSquareSearch(hiddenObjectPhysics.CurrentCell.X, hiddenObjectPhysics.CurrentCell.Y, 80, "Combat");
-                    }
-
-                    foreach (GameObject creature in Creatures)
-                    {
-                        if (!IsTargetViable(creature))
-                        {
-                            continue;
-                        }
-
-                        MMM_EffectIgnoreObject ignoreOnObject = creature.GetEffect<MMM_EffectIgnoreObject>();
-
-                        //If creature is not object itself, if it has no ignore effect or its ignore effect is from other creature
-                        if (creature != HiddenObject &&
-                           (ignoreOnObject == null ||
-                           (ignoreOnObject != null && ignoreOnObject.ObjectToIgnore != HiddenObject)))
-                        {
-                            creature.ApplyEffect(new MMM_EffectIgnoreObject(HiddenObject, Duration));
-                        }
-                    }
-                }
+                Obfuscate();
 
                 return true;
             }
 
-            if (E.ID == "MeleeAttackWithWeapon" || E.ID == "FiredMissileWeapon" || E.ID == "CommandThrowWeapon")
+            if (obfuscationBreakEvents.Contains(E.ID))
             {
                 Duration = 0;
+                MessageQueue.AddPlayerMessage("Obfuscation broken!");
+
                 return true;
             }
 

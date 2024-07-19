@@ -36,7 +36,7 @@ namespace MoreMentalMutations.Opinions
             get
             {
                 //50 opinion is allied
-                return 40;
+                return 49;
             }
         }
 
