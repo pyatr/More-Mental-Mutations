@@ -29,19 +29,20 @@ namespace XRL.World.Parts.Mutation
         public Guid TelekinesisPickupActivatedAbilityID = Guid.Empty;
         public Guid TelekinesisThrowActivatedAbilityID = Guid.Empty;
         public Guid TelekinesisLaunchWeaponActivatedAbilityID = Guid.Empty;
-        //public Guid TelekinesisSwitchLaunchTypesID = Guid.Empty;
+        // public Guid TelekinesisSwitchLaunchTypesID = Guid.Empty;
         //public Guid TelekinesisPickUpPreviousWeaponID = Guid.Empty;
         public ActivatedAbilityEntry TelekinesisGentlyPickupAndPlaceCreatureActivatedAbility;
         public ActivatedAbilityEntry TelekinesisPickupActivatedAbility;
         public ActivatedAbilityEntry TelekinesisThrowActivatedAbility;
         public ActivatedAbilityEntry TelekinesisLaunchWeaponActivatedAbility;
-        //public ActivatedAbilityEntry TelekinesisSwitchLaunchTypes;
+        // public ActivatedAbilityEntry TelekinesisSwitchLaunchTypes;
         //public ActivatedAbilityEntry TelekinesisPickUpPreviousWeapon;
 
         private GameObject lastThrownWeapon;
 
         public int BasicCooldown = 10;
         public string TelekinesisDamage = "1d6";
+        public bool PreciseAimMode = false;
 
         public MMM_Telekinesis()
         {
@@ -55,6 +56,7 @@ namespace XRL.World.Parts.Mutation
             Registrar.Register("CommandTelekinesisPickup");
             Registrar.Register("CommandTelekinesisThrow");
             Registrar.Register("CommandTelekinesisThrowWeapon");
+            Registrar.Register("CommandTelekinesisSwitchLaunchTypes");
 
             base.Register(Object, Registrar);
         }
@@ -716,6 +718,15 @@ namespace XRL.World.Parts.Mutation
             if (E.ID == "CommandTelekinesisPickupThrownWeapon")
             {
                 Popup.Show("You may pick up your weapon.");
+
+                return true;
+            }
+            if (E.ID == "CommandTelekinesisSwitchLaunchTypes")
+            {
+                PreciseAimMode = !PreciseAimMode;
+                MessageQueue.AddPlayerMessage($"Switched telekinsis aim mode to " + (PreciseAimMode ? "specific cell." : "general direction."));
+                UpdateAimPrecisionDescription();
+
                 return true;
             }
             return base.FireEvent(E);
@@ -740,6 +751,9 @@ namespace XRL.World.Parts.Mutation
                 TelekinesisThrowActivatedAbility = part.AbilityByGuid[TelekinesisThrowActivatedAbilityID];
                 TelekinesisLaunchWeaponActivatedAbilityID = part.AddAbility("Throw weapon", "CommandTelekinesisThrowWeapon", "Telekinesis");
                 TelekinesisLaunchWeaponActivatedAbility = part.AbilityByGuid[TelekinesisLaunchWeaponActivatedAbilityID];
+                // TelekinesisSwitchLaunchTypesID = part.AddAbility("Switch aiming mode", "CommandTelekinesisSwitchLaunchTypes", "Telekinesis");
+                // TelekinesisSwitchLaunchTypes = part.AbilityByGuid[TelekinesisSwitchLaunchTypesID];
+                UpdateAimPrecisionDescription();
                 //this.TelekinesisPickUpPreviousWeaponID = part.AddAbility("Return weapon", "CommandTelekinesisPickupThrownWeapon", "Telekinesis");
                 //this.TelekinesisPickUpPreviousWeapon = part.AbilityByGuid[this.TelekinesisPickUpPreviousWeaponID];
             }
@@ -749,12 +763,18 @@ namespace XRL.World.Parts.Mutation
             return base.Mutate(GO, Level);
         }
 
+        public void UpdateAimPrecisionDescription()
+        {
+            // TelekinesisSwitchLaunchTypes.DisplayName = "Switch aim mode [" + (PreciseAimMode ? "cell]" : "direction]");
+        }
+
         public override bool Unmutate(GameObject GO)
         {
             RemoveMutationByGUID(GO, ref TelekinesisGentlyPickupAndPlaceCreatureActivatedAbilityID);
             RemoveMutationByGUID(GO, ref TelekinesisPickupActivatedAbilityID);
             RemoveMutationByGUID(GO, ref TelekinesisLaunchWeaponActivatedAbilityID);
             RemoveMutationByGUID(GO, ref TelekinesisThrowActivatedAbilityID);
+            // RemoveMutationByGUID(GO, ref TelekinesisSwitchLaunchTypesID);
 
             return base.Unmutate(GO);
         }

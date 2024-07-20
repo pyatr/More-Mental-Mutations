@@ -173,7 +173,7 @@ namespace MoreMentalMutations.Effects
                 return true;
             }
 
-            if (obfuscationBreakEvents.Contains(E.ID))
+            if (obfuscationBreakEvents.Contains(E.ID) && Duration > 0)
             {
                 Duration = 0;
                 MessageQueue.AddPlayerMessage("Obfuscation broken!");

@@ -21,6 +21,11 @@ namespace XRL.World.Parts.Mutation
             Type = "Mental";
         }
 
+        public override void CollectStats(Templates.StatCollector stats)
+        {
+            stats.CollectCooldownTurns(MyActivatedAbility(DynakineticismActivatedAbilityID), Cooldown);
+        }
+
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Registrar.Register("CommandDynakineticism");
@@ -328,6 +333,8 @@ namespace XRL.World.Parts.Mutation
 
         public override bool ChangeLevel(int NewLevel)
         {
+            DescribeMyActivatedAbility(DynakineticismActivatedAbilityID, new Action<Templates.StatCollector>(CollectStats));
+
             return base.ChangeLevel(NewLevel);
         }
 
@@ -340,6 +347,8 @@ namespace XRL.World.Parts.Mutation
                 DynakineticismActivatedAbilityID = part.AddAbility("Dynakineticism", "CommandDynakineticism", "Mental Mutation");
                 DynakineticismActivatedAbility = part.AbilityByGuid[DynakineticismActivatedAbilityID];
             }
+
+            DescribeMyActivatedAbility(DynakineticismActivatedAbilityID, new Action<Templates.StatCollector>(CollectStats));
 
             return base.Mutate(GO, Level);
         }

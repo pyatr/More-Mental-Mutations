@@ -21,7 +21,7 @@ namespace XRL.World.Parts.Mutation
         public bool FlightRequiresOngoingEffort => true;
         public string FlightEvent => "CommandFlight";
         public string FlightActivatedAbilityClass => "Mental Mutation";
-        public string FlightSourceDescription => "You can levitate.";
+        public string FlightSourceDescription => "Levitation";
 
         public bool FlightFlying
         {

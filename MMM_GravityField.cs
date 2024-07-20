@@ -24,6 +24,11 @@ namespace XRL.World.Parts.Mutation
             Type = "Mental";
         }
 
+        public override void CollectStats(Templates.StatCollector stats)
+        {
+            stats.CollectCooldownTurns(MyActivatedAbility(GravityFieldActivatedAbilityID), BaseCooldown - Level * CooldownDecreasePerLevel);
+        }
+
         public override void Register(GameObject Object, IEventRegistrar Registrar)
         {
             Registrar.Register("CommandGravityField");
@@ -71,6 +76,8 @@ namespace XRL.World.Parts.Mutation
 
         public override bool ChangeLevel(int NewLevel)
         {
+            DescribeMyActivatedAbility(GravityFieldActivatedAbilityID, new Action<Templates.StatCollector>(CollectStats));
+
             return base.ChangeLevel(NewLevel);
         }
 
@@ -85,6 +92,7 @@ namespace XRL.World.Parts.Mutation
             }
 
             ChangeLevel(Level);
+            DescribeMyActivatedAbility(GravityFieldActivatedAbilityID, new Action<Templates.StatCollector>(CollectStats));
 
             return base.Mutate(GO, Level);
         }

@@ -13,7 +13,7 @@ namespace XRL.World.Parts.Mutation
         public Guid UnPresenceActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry UnPresenceActivatedAbility;
         public int ChanceToFlee = 10;
-        public int BaseCooldown = 130;
+        public int BaseCooldown = 80;
         public int BaseDuration = 20;
         public int DurationPerLevel = 4;
 
@@ -31,6 +31,11 @@ namespace XRL.World.Parts.Mutation
             Registrar.Register("AIGetOffensiveMutationList");
 
             base.Register(Object, Registrar);
+        }
+
+        public override void CollectStats(Templates.StatCollector stats)
+        {
+            stats.CollectCooldownTurns(MyActivatedAbility(PresenceActivatedAbilityID), BaseCooldown);
         }
 
         public override string GetDescription()
@@ -112,6 +117,7 @@ namespace XRL.World.Parts.Mutation
             }
 
             ChangeLevel(Level);
+            DescribeMyActivatedAbility(PresenceActivatedAbilityID, new Action<Templates.StatCollector>(CollectStats));
 
             return base.Mutate(GO, Level);
         }

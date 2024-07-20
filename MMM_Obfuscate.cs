@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using XRL.World.AI.GoalHandlers;
 using MoreMentalMutations.Effects;
 using UnityEngine;
+using XRL.Messages;
 
 namespace XRL.World.Parts.Mutation
 {
@@ -13,6 +14,10 @@ namespace XRL.World.Parts.Mutation
         public ActivatedAbilityEntry ObfuscateActivatedAbility;
         public Guid UnObfuscateActivatedAbilityID = Guid.Empty;
         public ActivatedAbilityEntry UnObfuscateActivatedAbility;
+
+        public int Cooldown = 110;
+        public int BaseDuration = 20;
+        public int DurationPerLevel = 3;
 
         public MMM_Obfuscate()
         {
@@ -30,6 +35,11 @@ namespace XRL.World.Parts.Mutation
             base.Register(Object, Registrar);
         }
 
+        public override void CollectStats(Templates.StatCollector stats)
+        {
+            stats.CollectCooldownTurns(MyActivatedAbility(ObfuscateActivatedAbilityID), Cooldown);
+        }
+
         public override string GetDescription()
         {
             return "Creatures with mind ignore your presence.";
@@ -37,7 +47,7 @@ namespace XRL.World.Parts.Mutation
 
         public override string GetLevelText(int Level)
         {
-            return "Duration: " + (20 + Level * 3) + " rounds" + "\nCooldown: " + 110 + " rounds\n.";
+            return $"Duration: {BaseDuration + Level * DurationPerLevel} rounds" + $"\nCooldown: {Cooldown} rounds.";
         }
 
         public override bool FireEvent(Event E)
@@ -99,6 +109,8 @@ namespace XRL.World.Parts.Mutation
             }
 
             ChangeLevel(Level);
+            DescribeMyActivatedAbility(ObfuscateActivatedAbilityID, new Action<Templates.StatCollector>(CollectStats));
+
             return base.Mutate(GO, Level);
         }
 

@@ -1,0 +1,82 @@
+<activatedabilities>
+	<ability Command="CommandObfuscate">
+		<description>
+			<p>Creatures with mind ignore your presence.</p>
+			<br />
+			<statline Name="Cooldown" />
+		</description>
+		<UITile Tile="abilities/obfuscate.png" Foreground="m" Detail="C" />
+	</ability>
+	<ability Command="CommandUnObfuscate">
+		<description>
+			<p>Disable obfuscation.</p>
+		</description>
+		<UITile Tile="abilities/obfuscate.png" Foreground="y" Detail="y" />
+	</ability>
+	<ability Command="CommandPresence">
+		<description>
+			<p>Your presence instills fear in hostile and neutral creatures and inspires friendly ones.</p>
+			<br />
+			<statline Name="Cooldown" />
+		</description>
+		<UITile Tile="Mutations/presence.png" Foreground="w" Detail="W" />
+	</ability>
+	<ability Command="CommandUnPresence">
+		<description>
+			<p>Disable presence.</p>
+		</description>
+		<UITile Tile="Mutations/presence.png" Foreground="y" Detail="y" />
+	</ability>
+	<ability Command="CommandTelekinesisCreaturePickup">
+		<description>
+			<p>Pick up creature and place it somewhere else.</p>
+		</description>
+		<UITile Tile="Mutations/telekinesis.png" Foreground="m" Detail="C" />
+	</ability>
+	<ability Command="CommandTelekinesisPickup">
+		<description>
+			<p>Pick up items from a distance.</p>
+		</description>
+		<UITile Tile="Mutations/telekinesis.png" Foreground="m" Detail="C" />
+	</ability>
+	<ability Command="CommandTelekinesisThrow">
+		<description>
+			<p>Throw creature in a direction, damaging it and first solid object in its path.</p>
+		</description>
+		<UITile Tile="Mutations/telekinesis.png" Foreground="m" Detail="C" />
+	</ability>
+	<ability Command="CommandTelekinesisThrowWeapon">
+		<description>
+			<p>Throw your currently equipped weapon.</p>
+		</description>
+		<UITile Tile="Mutations/telekinesis.png" Foreground="m" Detail="C" />
+	</ability>
+	<ability Command="CommandTelekinesisSwitchLaunchTypes">
+		<description>
+			<p>Switch aiming mode to specific cell or general direciton.</p>
+		</description>
+		<UITile Tile="Mutations/telekinesis.png" Foreground="m" Detail="C" />
+	</ability>
+	<ability Command="CommandDynakineticism">
+		<description>
+			<p>Crush target creatures with pressure from inside.</p>
+			<br />
+			<statline Name="Cooldown" />
+		</description>
+		<UITile Tile="Mutations/dynakinesis.png" Foreground="K" Detail="R" />
+	</ability>
+	<!-- <ability Command="CommandFlight">
+		<description>
+			<p>You can levitate.</p>
+		</description>
+		<UITile Tile="Mutations/levitation.png" Foreground="m" Detail="C" />
+	</ability> -->
+	<ability Command="CommandGravityField">
+		<description>
+			<p>Enable gravity field to soften incoming attacks.</p>
+			<br />
+			<statline Name="Cooldown" />
+		</description>
+		<UITile Tile="Mutations/grafield.png" Foreground="w" Detail="O" />
+	</ability>
+</activatedabilities>
