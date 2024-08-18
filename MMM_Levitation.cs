@@ -176,7 +176,7 @@ namespace XRL.World.Parts.Mutation
                                 GameObject gameObject = currentCell.Objects[index];
                                 StairsDown part = gameObject.GetPart<StairsDown>();
 
-                                if (part != null && part.IsLongFall() && Popup.ShowYesNo("It looks like a long way down " + gameObject.the + gameObject.ShortDisplayName + " you're above. Are you sure you want to stop levitating?", true, DialogResult.Yes) != DialogResult.Yes)
+                                if (part != null && part.IsLongFall() && Popup.ShowYesNo("It looks like a long way down " + gameObject.the + gameObject.ShortDisplayName + " you're above. Are you sure you want to stop levitating?") != DialogResult.Yes)
                                 {
                                     return false;
                                 }
