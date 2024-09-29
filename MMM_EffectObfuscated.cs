@@ -90,7 +90,11 @@ namespace MoreMentalMutations.Effects
 
         public void Unobfuscate()
         {
-            GameObject.Validate(ref HiddenObject);
+            if (!GameObject.Validate(ref HiddenObject))
+            {
+                return;
+            }
+
             List<GameObject> Creatures = new List<GameObject>(10);
             Physics hiddenObjectPhysics = HiddenObject.Physics;
 
