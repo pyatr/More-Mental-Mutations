@@ -88,10 +88,8 @@ namespace MoreMentalMutations.Effects
         {
             MMM_EffectObfuscated obfuscated = ObjectToIgnore.GetEffect<MMM_EffectObfuscated>();
 
-            if (obfuscated != null && obfuscated.HiddenObject == ObjectToIgnore)
+            if (obfuscated != null && obfuscated.HiddenObject == ObjectToIgnore && Object.Brain.TryGetOpinions(ObjectToIgnore, out OpinionList opinionList))
             {
-                Object.Brain.TryGetOpinions(ObjectToIgnore, out OpinionList opinionList);
-
                 foreach (IOpinion opinionOnHiddenObject in opinionList)
                 {
                     if (opinionOnHiddenObject.GetType() == typeof(OpinionObfuscate))
